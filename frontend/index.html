@@ -1595,6 +1595,11 @@ async function checkAuth() {
 let currentFilter = 'all';
 let searchTimer = null;
 let allRecords = [];
+
+// 获取当前上海时间的 datetime-local 值
+function nowShanghai() {
+    return new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).replace(' ', 'T').substring(0, 16);
+}
 let currentTimePeriod = 'all';
 let customDateFrom = '';
 let customDateTo = '';
@@ -1936,7 +1941,7 @@ function openAddModal() {
     document.getElementById('edit-id').value = '';
     document.getElementById('f-customer').value = '';
     document.getElementById('f-product').value = '';
-    document.getElementById('f-created-at').value = '';
+    document.getElementById('f-created-at').value = nowShanghai();
     document.getElementById('f-cost').value = '';
     document.getElementById('f-buy').value = '';
     document.getElementById('f-other').value = '0';
@@ -2028,9 +2033,10 @@ function confirmDelete(id) {
 // ========== Mark Returned ==========
 async function markReturned(id) {
     try {
+        const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' });
         await api(`/api/records/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ is_returned: 1 }),
+            body: JSON.stringify({ is_returned: 1, returned_at: now }),
         });
         showToast('已标记为回款', 'success');
         loadRecords();
