@@ -368,6 +368,14 @@
             backdrop-filter: blur(12px);
         }
 
+        /* === Product Column === */
+        .col-product {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         /* === Column Resizer === */
         .col-resizer {
             position: absolute;
@@ -1367,7 +1375,7 @@
                         <tr>
                             <th class="mobile-hide">ID</th>
                             <th>客户</th>
-                            <th>商品</th>
+                            <th class="col-product">商品</th>
                             <th>成本</th>
                             <th>售价</th>
                             <th>利润</th>
@@ -1425,7 +1433,7 @@
                         <tr>
                             <th class="mobile-hide">ID</th>
                             <th>客户</th>
-                            <th>商品</th>
+                            <th class="col-product">商品</th>
                             <th>成本</th>
                             <th>售价</th>
                             <th class="mobile-hide">其他</th>
@@ -2069,7 +2077,7 @@ function renderDashboardTable(records) {
         <tr>
             <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">#${r.id}</td>
             <td><strong>${r.customer || '-'}</strong></td>
-            <td>${r.product || '-'}</td>
+            <td class="col-product" title="${r.product || ''}">${r.product || '-'}</td>
             <td>${formatMoney(r.cost_price)}</td>
             <td>${formatMoney(r.buy_price)}</td>
             <td class="profit-cell ${profitClass(r.profit)}">${formatMoney(r.profit)}</td>
@@ -2115,7 +2123,7 @@ function renderRecordsTable(records) {
         <tr>
             <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">#${r.id}</td>
             <td><strong>${r.customer || '-'}</strong></td>
-            <td>${r.product || '-'}</td>
+            <td class="col-product" title="${r.product || ''}">${r.product || '-'}</td>
             <td>${formatMoney(r.cost_price)}</td>
             <td>${formatMoney(r.buy_price)}</td>
             <td class="mobile-hide">${formatMoney(r.other_income)}</td>
@@ -2368,14 +2376,18 @@ async function showTrackingDetail(recordId) {
         const res = await api(`/api/tracking/status/${recordId}`);
         const d = res.data;
         if (d.error) {
+            const noInfo = d.tracking_no ? `<p style="font-size:12px;color:var(--gray-400);margin-top:8px">单号：${d.tracking_no || '无'} | 公司：${d.company || d.company_code || '未识别'}</p>` : '';
             body.innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">
                 <p style="font-size:15px;font-weight:600">❌ ${d.error}</p>
+                ${noInfo}
             </div>`;
             return;
         }
         if (!d.success) {
+            const noInfo = d.tracking_no ? `<p style="font-size:12px;color:var(--gray-400);margin-top:8px">单号：${d.tracking_no} | 快递公司：${d.company || d.company_code || '未知'}</p>` : '';
             body.innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">
                 <p style="font-size:15px;font-weight:600">${d.message || '查询失败'}</p>
+                ${noInfo}
                 <p style="font-size:13px;color:var(--gray-400);margin-top:8px">${d.state_text || ''}</p>
             </div>`;
             return;

@@ -33,19 +33,28 @@ COMPANY_NAMES = {
     "zhaijisong": "宅急送",
 }
 
-# 单号前缀 -> 快递公司代码
+# 单号前缀 -> 快递公司代码（长前缀在前，避免短前缀误匹配）
 PREFIX_MAP = {
+    "YUNDA": "yunda",
+    "STO": "shentong",
+    "EMS": "ems",
+    "ZJS": "zhaijisong",
+    "DBL": "debangwuliu",
     "SF": "shunfeng",
     "JD": "jd",
     "JT": "jitu",
     "YT": "yuantong",
     "ZT": "zhongtong",
-    "STO": "shentong",
-    "EMS": "ems",
     "YD": "yunda",
     "YZ": "youzhengguonei",
-    "YUNDA": "yunda",
-    "ZJS": "zhaijisong",
+    "DB": "debangwuliu",
+    "HT": "huitongkuaidi",
+    "HH": "huitongkuaidi",
+    "773": "jitu",
+    "JP": "jitu",
+    "KK": "kuaijiesudi",
+    "UA": "youzhengguonei",
+    "99": "youzhengguonei",
 }
 
 
@@ -63,13 +72,24 @@ async def query_tracking(company: str, tracking_no: str) -> dict:
     param = json.dumps({"com": company, "num": tracking_no}, separators=(",", ":"))
     sign = hashlib.md5((param + KEY + CUSTOMER).encode()).hexdigest().upper()
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.post(
-            API_URL,
-            data={"customer": CUSTOMER, "param": param, "sign": sign},
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-        data = resp.json()
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                API_URL,
+                data={"customer": CUSTOMER, "param": param, "sign": sign},
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            data = resp.json()
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"网络请求失败: {str(e)}",
+            "state": "0",
+            "state_text": "查询出错",
+            "tracking_no": tracking_no,
+            "company": COMPANY_NAMES.get(company, company),
+            "company_code": company,
+        }
 
     if data.get("status") != "200":
         return {
@@ -77,6 +97,9 @@ async def query_tracking(company: str, tracking_no: str) -> dict:
             "message": data.get("message", "查询失败"),
             "state": data.get("state", "0"),
             "state_text": STATE_MAP.get(data.get("state", "0"), "未知"),
+            "tracking_no": tracking_no,
+            "company": COMPANY_NAMES.get(company, company),
+            "company_code": company,
         }
 
     state = data.get("state", "0")
@@ -93,7 +116,7 @@ async def query_tracking(company: str, tracking_no: str) -> dict:
         "is_delivered": state == "3",
         "history": [
             {"time": item["ftime"], "context": item["context"]}
-            for item in (data.get("data") or [])[:10]
+            for item in (data.get("data") or [])
         ],
     }
 

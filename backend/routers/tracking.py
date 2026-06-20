@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends
 import psycopg
 from datetime import datetime
 
-from database import get_db
+from database import get_db, pool
 from auth import get_current_user
 from services.kuaidi100 import query_tracking, batch_query_tracking, detect_company, COMPANY_NAMES
+from services.scheduler import refresh_schedule
 
 router = APIRouter(prefix="/api/tracking", tags=["tracking"])
 
@@ -48,15 +49,20 @@ async def get_tracking_status(
 
     no = row.get("tracking_no", "").strip()
     if not no:
-        return {"error": "该记录没有快递单号"}
+        return {"error": "该记录没有快递单号", "tracking_no": "", "company": ""}
 
     company = row.get("tracking_company", "").strip()
     if not company:
         company = detect_company(no)
     if not company:
-        return {"error": "无法识别快递公司"}
+        return {"error": f"无法识别快递公司（单号：{no}），请手动编辑记录补充快递公司代码", "tracking_no": no, "company": ""}
 
     result = await query_tracking(company, no)
+
+    # 如果查询失败，附加上查询信息方便排查
+    if not result.get("success"):
+        result["tracking_no"] = no
+        result["company_code"] = company
 
     # 同时更新缓存
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -145,3 +151,34 @@ async def sync_all_tracking(
             "message": f"已同步 {updated} 条记录的物流状态",
         }
     }
+
+
+@router.get("/cron")
+async def get_cron(current_user: dict = Depends(get_current_user)):
+    """获取定时物流查询的cron表达式"""
+    async with pool.connection() as db:
+        cursor = await db.execute("SELECT value FROM site_config WHERE key='tracking_cron'")
+        row = await cursor.fetchone()
+    return {"data": {"cron": dict(row)["value"] if row else "0 */3 * * *"}}
+
+
+@router.put("/cron")
+async def update_cron(body: dict, current_user: dict = Depends(get_current_user)):
+    """更新定时物流查询的cron表达式"""
+    cron_expr = body.get("cron", "").strip()
+    if not cron_expr:
+        return {"error": "cron表达式不能为空"}
+    parts = cron_expr.split()
+    if len(parts) != 5:
+        return {"error": "cron表达式必须是5段格式，如 0 */3 * * *"}
+    # 存储到数据库
+    async with pool.connection() as db:
+        await db.execute(
+            "INSERT INTO site_config(key,value) VALUES('tracking_cron',%s) "
+            "ON CONFLICT(key) DO UPDATE SET value=%s",
+            (cron_expr, cron_expr),
+        )
+        await db.commit()
+    # 刷新调度器
+    await refresh_schedule(cron_expr)
+    return {"data": {"cron": cron_expr, "message": "定时任务已更新"}}
