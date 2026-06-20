@@ -5,11 +5,12 @@ import asyncio
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from contextlib import asynccontextmanager
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from database import init_pool, close_pool, get_db
 from auth import ensure_admin
@@ -17,6 +18,17 @@ from routers import records, stats, tracking, auth, admin
 from services.scheduler import start_scheduler, stop_scheduler
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+
+
+class CacheControlMiddleware(BaseHTTPMiddleware):
+    """API 接口禁止浏览器缓存，防止切换账号后看到旧数据"""
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
 
 
 @asynccontextmanager
@@ -39,6 +51,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(CacheControlMiddleware)
 
 app.include_router(auth.router)
 app.include_router(admin.router)

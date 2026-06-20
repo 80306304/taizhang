@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 import psycopg
 from datetime import datetime
 
-from database import get_db, pool
+from database import get_db
 from auth import get_current_user
 from services.kuaidi100 import query_tracking, batch_query_tracking, detect_company, COMPANY_NAMES
 from services.scheduler import refresh_schedule
@@ -144,17 +144,23 @@ async def sync_all_tracking(
 
 
 @router.get("/cron")
-async def get_cron(current_user: dict = Depends(get_current_user)):
+async def get_cron(
+    db: psycopg.AsyncConnection = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
     """获取定时物流查询的cron表达式"""
-    async with pool.connection() as db:
-        cursor = await db.execute("SELECT value FROM site_config WHERE key='tracking_cron'")
-        row = await cursor.fetchone()
-    # pool.connection() 不带 dict_row，row 是 tuple
-    return {"data": {"cron": row[0] if row else "0 */3 * * *"}}
+    cursor = await db.execute("SELECT value FROM site_config WHERE key='tracking_cron'")
+    row = await cursor.fetchone()
+    val = row["value"] if row else "0 */3 * * *"
+    return {"data": {"cron": val}}
 
 
 @router.put("/cron")
-async def update_cron(body: dict, current_user: dict = Depends(get_current_user)):
+async def update_cron(
+    body: dict,
+    db: psycopg.AsyncConnection = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
     """更新定时物流查询的cron表达式"""
     cron_expr = body.get("cron", "").strip()
     if not cron_expr:
@@ -163,13 +169,12 @@ async def update_cron(body: dict, current_user: dict = Depends(get_current_user)
     if len(parts) != 5:
         return {"error": "cron表达式必须是5段格式，如 0 */3 * * *"}
     # 存储到数据库
-    async with pool.connection() as db:
-        await db.execute(
-            "INSERT INTO site_config(key,value) VALUES('tracking_cron',%s) "
-            "ON CONFLICT(key) DO UPDATE SET value=%s",
-            (cron_expr, cron_expr),
-        )
-        await db.commit()
+    await db.execute(
+        "INSERT INTO site_config(key,value) VALUES('tracking_cron',%s) "
+        "ON CONFLICT(key) DO UPDATE SET value=%s",
+        (cron_expr, cron_expr),
+    )
+    await db.commit()
     # 刷新调度器
     await refresh_schedule(cron_expr)
     return {"data": {"cron": cron_expr, "message": "定时任务已更新"}}

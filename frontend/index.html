@@ -98,7 +98,7 @@
         }
 
         /* === Main Content === */
-        .main { padding: 24px 28px; max-width: 1280px; margin: 0 auto; }
+        .main { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
         .page { display: none; }
         .page.active { display: block; }
 
@@ -341,6 +341,7 @@
         .table-scroll {
             overflow-x: auto;
             max-height: 520px;
+            min-height: 120px;
             overflow-y: auto;
         }
 
@@ -372,6 +373,12 @@
             max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* === Status Columns (不换行) === */
+        .col-status {
+            min-width: 90px;
             white-space: nowrap;
         }
 
@@ -511,6 +518,7 @@
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.2px;
+            white-space: nowrap;
         }
 
         .badge-success { background: #d1fae5; color: #065f46; }
@@ -726,21 +734,21 @@
 
         .tracking-timeline {
             position: relative;
-            padding-left: 24px;
+            padding-left: 28px;
         }
 
         .tracking-timeline::before {
             content: '';
             position: absolute;
-            left: 6px; top: 8px; bottom: 8px;
+            left: 8px; top: 12px; bottom: 12px;
             width: 2px;
-            background: var(--gray-200);
+            background: linear-gradient(180deg, var(--primary-light) 0%, var(--gray-200) 100%);
             border-radius: 1px;
         }
 
         .timeline-item {
             position: relative;
-            padding-bottom: 16px;
+            padding-bottom: 20px;
         }
 
         .timeline-item:last-child { padding-bottom: 0; }
@@ -748,20 +756,152 @@
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: -21px; top: 6px;
+            left: -23px; top: 6px;
             width: 10px; height: 10px;
             border-radius: 50%;
             background: var(--gray-300);
-            border: 2px solid white;
+            border: 2.5px solid white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
 
         .timeline-item:first-child::before {
             background: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2), 0 2px 8px rgba(99, 102, 241, 0.3);
+            width: 12px; height: 12px;
+            left: -24px; top: 5px;
         }
 
-        .timeline-time { font-size: 12px; color: var(--gray-400); }
-        .timeline-text { font-size: 13px; color: var(--gray-700); }
+        .timeline-time {
+            font-size: 12px;
+            color: var(--gray-400);
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .timeline-text {
+            font-size: 13px;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+
+        .timeline-item:first-child .timeline-text {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        /* === Tracking Detail Modal (Premium) === */
+        .tracking-detail-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #a78bfa 100%);
+            color: white;
+            padding: 24px;
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tracking-detail-header::before {
+            content: '';
+            position: absolute;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            top: -60px; right: -30px;
+            pointer-events: none;
+        }
+
+        .tracking-detail-header::after {
+            content: '';
+            position: absolute;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            bottom: -40px; left: 20px;
+            pointer-events: none;
+        }
+
+        .tracking-detail-header .tdh-company {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .tracking-detail-header .tdh-no {
+            font-size: 13px;
+            opacity: 0.8;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+
+        .tracking-detail-status {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.04), rgba(139,92,246,0.04));
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .tracking-detail-status .tds-badge {
+            font-size: 15px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 12px;
+        }
+
+        .tracking-detail-status .tds-info {
+            flex: 1;
+        }
+
+        .tracking-detail-status .tds-label {
+            font-size: 11px;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .tracking-detail-status .tds-text {
+            font-size: 14px;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        .tracking-detail-timeline {
+            padding: 20px 24px;
+        }
+
+        .tracking-detail-timeline .tdt-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tracking-detail-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--gray-400);
+        }
+
+        .tracking-detail-empty .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .tracking-detail-empty p {
+            font-size: 14px;
+        }
 
         /* === Dashboard Section Header === */
         .dashboard-section {
@@ -1076,7 +1216,7 @@
             .nav-tabs { padding: 0 16px; top: 56px; }
             .nav-tab { padding: 12px 16px; font-size: 13px; }
 
-            .main { padding: 16px; }
+            .main { padding: 16px; max-width: 100%; }
 
             .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .stat-card { padding: 14px; }
@@ -1115,6 +1255,16 @@
             .auth-brand { padding: 26px 16px 22px; }
             .auth-brand-icon { font-size: 36px; }
             .auth-brand-title { font-size: 20px; }
+
+            /* Tracking detail modal tablet */
+            .tracking-detail-header { padding: 20px; }
+            .tracking-detail-header .tdh-company { font-size: 18px; }
+            .tracking-detail-status { padding: 14px 20px; flex-wrap: wrap; gap: 10px; }
+            .tracking-detail-timeline { padding: 16px 20px; }
+
+            /* Pagination responsive */
+            .pagination { flex-direction: column; gap: 8px; align-items: center; }
+            .pagination-btns { flex-wrap: wrap; justify-content: center; }
         }
 
         /* === Responsive - Mobile (480px) === */
@@ -1122,6 +1272,7 @@
             .header { padding: 0 12px; height: 50px; }
             .header h1 { font-size: 15px; }
             .header h1 span { font-size: 18px; }
+            .header-actions { gap: 6px; }
             .header-actions .btn { padding: 7px 12px; font-size: 12px; }
 
             .nav-tabs { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -1153,6 +1304,25 @@
             /* Smaller table text on phone */
             th { padding: 10px 8px; font-size: 11px; }
             td { padding: 10px 8px; font-size: 12px; }
+
+            /* Tracking detail modal mobile */
+            .tracking-detail-header { padding: 18px 16px; }
+            .tracking-detail-header .tdh-company { font-size: 16px; }
+            .tracking-detail-header .tdh-no { font-size: 12px; }
+            .tracking-detail-status { padding: 12px 16px; flex-direction: column; gap: 8px; }
+            .tracking-detail-status .tds-badge { font-size: 13px; }
+            .tracking-detail-timeline { padding: 14px 16px; }
+            .tracking-timeline { padding-left: 24px; }
+
+            /* Filter chips wrap */
+            .filter-chips { gap: 6px; }
+            .chip { padding: 5px 12px; font-size: 12px; }
+
+            /* Pagination mobile */
+            .pagination { flex-direction: column; gap: 8px; align-items: center; padding: 12px; }
+            .pagination-info { font-size: 12px; text-align: center; }
+            .pagination-btns { flex-wrap: wrap; justify-content: center; gap: 3px; }
+            .page-btn { min-width: 30px; height: 30px; font-size: 12px; }
 
             /* Auth page mobile */
             #auth-page { padding: 0; align-items: flex-start; }
@@ -1378,8 +1548,8 @@
                             <th>成本</th>
                             <th>售价</th>
                             <th>利润</th>
-                            <th>物流</th>
-                            <th>回款</th>
+                            <th class="col-status">物流</th>
+                            <th class="col-status">回款</th>
                             <th>下单时间</th>
                             <th class="mobile-hide">回款时间</th>
                         </tr>
@@ -1440,8 +1610,8 @@
                             <th class="mobile-hide">其他</th>
                             <th>利润</th>
                             <th>快递</th>
-                            <th>物流状态</th>
-                            <th>回款</th>
+                            <th class="col-status">物流状态</th>
+                            <th class="col-status">回款</th>
                             <th class="mobile-hide">备注</th>
                             <th>下单时间</th>
                             <th class="mobile-hide">回款时间</th>
@@ -1558,14 +1728,15 @@
 
 <!-- ========== Tracking Detail Modal ========== -->
 <div id="tracking-detail-modal" class="modal-overlay">
-    <div class="modal" style="max-width:600px">
-        <div class="modal-header">
-            <h2>📦 物流详情</h2>
+    <div class="modal" style="max-width:520px">
+        <div class="modal-header" style="border-bottom:none;padding:16px 20px 8px">
+            <h2 style="font-size:16px">📦 物流详情</h2>
             <button class="modal-close" onclick="closeModal('tracking-detail-modal')">&times;</button>
         </div>
-        <div class="modal-body" id="tracking-detail-body">
-            <div style="text-align:center;color:var(--gray-400);padding:40px 0">
-                <span class="spinner"></span> 查询中...
+        <div id="tracking-detail-body">
+            <div class="tracking-detail-empty">
+                <span class="spinner" style="border-color:var(--gray-200);border-top-color:var(--primary)"></span>
+                <p style="margin-top:12px">查询中...</p>
             </div>
         </div>
     </div>
@@ -1830,7 +2001,7 @@ let allRecords = [];
 let recordsPage = 1;
 let usersPage = 1;
 let codesPage = 1;
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 // 获取当前上海时间的 datetime-local 值
 function nowShanghai() {
@@ -2026,7 +2197,12 @@ function showToast(msg, type = '') {
 // ========== API Helpers ==========
 async function api(path, options = {}) {
     try {
-        const headers = { 'Content-Type': 'application/json', ...options.headers };
+        const headers = {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            ...options.headers,
+        };
         if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
         const resp = await fetch(`${API}${path}`, { ...options, headers });
         if (resp.status === 401) {
@@ -2467,30 +2643,21 @@ async function syncTracking() {
 async function showTrackingDetail(recordId) {
     openModal('tracking-detail-modal');
     const body = document.getElementById('tracking-detail-body');
-    body.innerHTML = '<div style="text-align:center;color:var(--gray-400);padding:40px 0"><span class="spinner"></span> 查询中...</div>';
+    body.innerHTML = '<div class="tracking-detail-empty"><span class="spinner" style="border-color:var(--gray-200);border-top-color:var(--primary);width:20px;height:20px"></span><p style="margin-top:12px">正在查询物流信息...</p></div>';
     try {
         const res = await api(`/api/tracking/status/${recordId}`);
         const d = res.data;
         if (d.error) {
-            const noInfo = d.tracking_no ? `<p style="font-size:12px;color:var(--gray-400);margin-top:8px">单号：${d.tracking_no || '无'} | 公司：${d.company || d.company_code || '未识别'}</p>` : '';
-            body.innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">
-                <p style="font-size:15px;font-weight:600">❌ ${d.error}</p>
-                ${noInfo}
-            </div>`;
+            body.innerHTML = `<div class="tracking-detail-empty"><span class="icon">📭</span><p style="font-weight:600;color:var(--gray-600)">${d.error}</p>${d.tracking_no ? `<p style="font-size:12px;color:var(--gray-400);margin-top:6px">单号：${d.tracking_no} | 公司：${d.company || d.company_code || '未识别'}</p>` : ''}</div>`;
             return;
         }
         if (!d.success) {
-            const noInfo = d.tracking_no ? `<p style="font-size:12px;color:var(--gray-400);margin-top:8px">单号：${d.tracking_no} | 快递公司：${d.company || d.company_code || '未知'}</p>` : '';
-            body.innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">
-                <p style="font-size:15px;font-weight:600">${d.message || '查询失败'}</p>
-                ${noInfo}
-                <p style="font-size:13px;color:var(--gray-400);margin-top:8px">${d.state_text || ''}</p>
-            </div>`;
+            body.innerHTML = `<div class="tracking-detail-empty"><span class="icon">⚠️</span><p style="font-weight:600;color:var(--gray-600)">${d.message || '查询失败'}</p>${d.tracking_no ? `<p style="font-size:12px;color:var(--gray-400);margin-top:6px">单号：${d.tracking_no} | 快递公司：${d.company || d.company_code || '未知'}</p>` : ''}<p style="font-size:12px;color:var(--gray-400);margin-top:4px">${d.state_text || ''}</p></div>`;
             return;
         }
         body.innerHTML = renderTrackingResult(d);
     } catch (e) {
-        body.innerHTML = '<p style="color:var(--danger);text-align:center;padding:20px">查询失败，请重试</p>';
+        body.innerHTML = '<div class="tracking-detail-empty"><span class="icon">❌</span><p style="color:var(--danger)">查询失败，请重试</p></div>';
     }
 }
 
@@ -2510,14 +2677,25 @@ async function loadCompanies() {
 }
 
 function renderTrackingResult(d) {
-    let html = `
-        <div class="tracking-card" style="border-left:3px solid var(--primary)">
-            <h4 style="margin-bottom:10px;font-size:15px">${d.company} · ${d.tracking_no}</h4>
-            <p style="margin-bottom:4px;font-size:13px"><strong>状态：</strong>${trackingBadge(d.state, d.state_text)}</p>
-            <p style="margin-bottom:16px;font-size:13px;color:var(--gray-500)"><strong>最新：</strong>${d.latest_time} — ${d.latest_context}</p>
+    const stateIcon = d.state === '3' ? '✅' : d.state === '2' ? '🚚' : d.state === '4' ? '⚠️' : d.state === '5' ? '❓' : d.state === '6' ? '↩️' : '📭';
+    const badgeClass = d.state === '3' ? 'badge-success' : d.state === '2' ? 'badge-info' : d.state === '4' ? 'badge-warning' : d.state === '5' ? 'badge-danger' : d.state === '6' ? 'badge-purple' : 'badge-gray';
+
+    let html = `<div style="border-radius:var(--radius);overflow:hidden;border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)">
+        <div class="tracking-detail-header">
+            <div class="tdh-company">${stateIcon} ${d.company || '快递'}</div>
+            <div class="tdh-no">${d.tracking_no}</div>
+        </div>
+        <div class="tracking-detail-status">
+            <span class="badge ${badgeClass} tds-badge">${stateIcon} ${d.state_text || '未知'}</span>
+            <div class="tds-info">
+                <div class="tds-label">最新动态</div>
+                <div class="tds-text">${d.latest_time || ''} ${d.latest_context ? '— ' + d.latest_context : ''}</div>
+            </div>
+        </div>
     `;
+
     if (d.history && d.history.length) {
-        html += '<div class="tracking-timeline">';
+        html += `<div class="tracking-detail-timeline"><div class="tdt-title">📍 物流轨迹 (${d.history.length}条)</div><div class="tracking-timeline">`;
         d.history.forEach(item => {
             html += `
                 <div class="timeline-item">
@@ -2526,7 +2704,7 @@ function renderTrackingResult(d) {
                 </div>
             `;
         });
-        html += '</div>';
+        html += '</div></div>';
     }
     html += '</div>';
     return html;
