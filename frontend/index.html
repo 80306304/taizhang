@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台账管理系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --glass-bg: rgba(255, 255, 255, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px rgba(99, 102, 241, 0.08);
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 30%, #dbeafe 60%, #e0f2fe 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        /* === Header === */
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 0 28px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.25);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions { display: flex; gap: 10px; }
+
+        /* === Navigation Tabs === */
+        .nav-tabs {
+            display: flex;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 0 28px;
+            position: sticky;
+            top: 64px;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            padding: 14px 22px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-400);
+            border-bottom: 2.5px solid transparent;
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .nav-tab:hover { color: var(--primary); }
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* === Main Content === */
+        .main { padding: 24px 28px; max-width: 1280px; margin: 0 auto; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* === Glass Card === */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.12);
+            transform: translateY(-1px);
+        }
+
+        /* === Stats Grid === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .stat-card.success::before { background: linear-gradient(90deg, #10b981, #34d399); }
+        .stat-card.warning::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .stat-card.danger::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .stat-card.info::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(99, 102, 241, 0.15);
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            opacity: 0.85;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--gray-800);
+            letter-spacing: -0.5px;
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+
+        /* === Toolbar === */
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar .search-box { flex: 1; min-width: 200px; }
+
+        /* === Buttons === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover::after { opacity: 1; }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .btn-success:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+        }
+
+        .btn-outline {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+        }
+        .btn-outline:hover {
+            background: white;
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        /* === Input === */
+        .input, .select, .textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--gray-800);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .input:focus, .select:focus, .textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            background: white;
+        }
+
+        .textarea { resize: vertical; min-height: 80px; }
+
+        /* === Form === */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 6px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* === Table === */
+        .table-wrapper {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+        }
+
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            background: rgba(99, 102, 241, 0.04);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1.5px solid var(--gray-100);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(241, 245, 249, 0.8);
+            white-space: nowrap;
+        }
+
+        tr { transition: background 0.15s; }
+        tr:nth-child(even) { background: rgba(241, 245, 249, 0.4); }
+        tr:hover { background: rgba(99, 102, 241, 0.04); }
+        tr:last-child td { border-bottom: none; }
+
+        /* === Badges === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-gray { background: var(--gray-100); color: var(--gray-500); }
+        .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+        /* === Profit Colors === */
+        .profit-positive { color: var(--success); font-weight: 700; }
+        .profit-negative { color: var(--danger); font-weight: 700; }
+        .profit-zero { color: var(--gray-300); }
+
+        /* === Action Buttons === */
+        .action-btns { display: flex; gap: 4px; }
+
+        /* === Modal === */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+            animation: modalIn 0.25s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .modal-header h2 { font-size: 17px; font-weight: 700; }
+
+        .modal-close {
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border: none; background: none; cursor: pointer;
+            border-radius: 8px; color: var(--gray-400); font-size: 20px;
+            transition: var(--transition);
+        }
+        .modal-close:hover { background: var(--gray-100); color: var(--gray-600); }
+
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--gray-100);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* === Smart Input Area === */
+        .smart-input-area {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .smart-input-area h3 {
+            font-size: 15px;
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .smart-input-row { display: flex; gap: 10px; }
+        .smart-input-row .input { flex: 1; }
+
+        /* === Filter Chips === */
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--gray-200);
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--gray-500);
+            transition: var(--transition);
+        }
+
+        .chip:hover { border-color: var(--primary-light); color: var(--primary); }
+        .chip.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        /* === Empty State === */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--gray-400);
+        }
+
+        .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* === Toast === */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--gray-800);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+            max-width: 340px;
+            backdrop-filter: blur(8px);
+        }
+
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* === Confirm Dialog === */
+        .confirm-dialog .modal { max-width: 400px; }
+        .confirm-dialog .modal-body { text-align: center; padding: 32px 24px; }
+        .confirm-dialog .icon { font-size: 44px; margin-bottom: 16px; }
+        .confirm-dialog p { font-size: 14px; color: var(--gray-500); }
+
+        /* === Section Title === */
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* === Profit Cell === */
+        .profit-cell { font-weight: 700; font-size: 13px; }
+
+        /* === Loading Spinner === */
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* === Tracking === */
+        .tracking-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 20px;
+        }
+
+        .tracking-timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .tracking-timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px; top: 8px; bottom: 8px;
+            width: 2px;
+            background: var(--gray-200);
+            border-radius: 1px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 16px;
+        }
+
+        .timeline-item:last-child { padding-bottom: 0; }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -21px; top: 6px;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            border: 2px solid white;
+        }
+
+        .timeline-item:first-child::before {
+            background: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .timeline-time { font-size: 12px; color: var(--gray-400); }
+        .timeline-text { font-size: 13px; color: var(--gray-700); }
+
+        /* === Dashboard Section Header === */
+        .dashboard-section {
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-header .section-title {
+            margin-bottom: 0;
+        }
+
+        /* === Time Period Filter === */
+        .time-filter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .period-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--gray-200);
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--gray-500);
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .period-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+        .period-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .custom-date-row {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .custom-date-row.show { display: flex; }
+
+        .custom-date-row input[type="date"] {
+            padding: 7px 10px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--gray-700);
+            background: rgba(255, 255, 255, 0.8);
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .custom-date-row input[type="date"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        .custom-date-row .date-sep {
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+
+        /* === Auth Page === */
+        #auth-page {
+            display: none;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 30%, #dbeafe 60%, #e0f2fe 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #auth-page.show { display: flex; }
+
+        /* 装饰性浮动几何图形 */
+        #auth-page::before,
+        #auth-page::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        #auth-page::before {
+            width: 400px; height: 400px;
+            background: linear-gradient(135deg, #6366f1, #a78bfa);
+            top: -120px; right: -80px;
+            animation: floatAuth1 18s ease-in-out infinite;
+        }
+
+        #auth-page::after {
+            width: 300px; height: 300px;
+            background: linear-gradient(135deg, #818cf8, #c4b5fd);
+            bottom: -100px; left: -60px;
+            animation: floatAuth2 22s ease-in-out infinite;
+        }
+
+        @keyframes floatAuth1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, 40px) scale(1.08); }
+        }
+
+        @keyframes floatAuth2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(25px, -35px) scale(1.05); }
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow:
+                0 24px 64px rgba(99, 102, 241, 0.12),
+                0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            animation: authCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes authCardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .auth-brand {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            color: white;
+            text-align: center;
+            padding: 32px 20px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-brand::before {
+            content: '';
+            position: absolute;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            top: -80px; right: -40px;
+        }
+
+        .auth-brand-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            display: block;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+        }
+
+        .auth-brand-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            position: relative;
+        }
+
+        .auth-brand-sub {
+            font-size: 13px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-top: 4px;
+            position: relative;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-400);
+            border-bottom: 2.5px solid transparent;
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .auth-tab:hover { color: var(--primary); }
+        .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .auth-body { padding: 28px 24px 24px; }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+
+        .auth-form .form-group { margin-bottom: 18px; }
+        .auth-form .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 7px;
+        }
+
+        .auth-input-wrap {
+            position: relative;
+        }
+
+        .auth-input-wrap .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.5;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1;
+        }
+
+        .auth-input-wrap:focus-within .input-icon { opacity: 0.85; }
+
+        .auth-input-wrap .input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: var(--transition);
+            background: rgba(255,255,255,0.8);
+            height: 46px;
+        }
+
+        .auth-input-wrap .input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 1px 2px rgba(0,0,0,0.04);
+            background: white;
+        }
+
+        .auth-input-wrap .input::placeholder {
+            color: var(--gray-300);
+        }
+
+        .auth-form .btn {
+            width: 100%;
+            height: 48px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 6px;
+            border-radius: 12px;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 14px; display: none; text-align: center; padding: 10px; background: rgba(239,68,68,0.06); border-radius: 10px; border: 1px solid rgba(239,68,68,0.12); }
+        .auth-error.show { display: block; }
+
+        /* === Admin Page === */
+        .admin-section { margin-bottom: 28px; }
+        .admin-section .section-title { margin-bottom: 12px; }
+
+        /* === Responsive - Tablet (768px) === */
+        @media (max-width: 768px) {
+            .header { padding: 0 16px; height: 56px; }
+            .header h1 { font-size: 17px; gap: 6px; }
+
+            .nav-tabs { padding: 0 16px; top: 56px; }
+            .nav-tab { padding: 12px 16px; font-size: 13px; }
+
+            .main { padding: 16px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-value { font-size: 22px; }
+
+            .form-row { grid-template-columns: 1fr; }
+            .modal { max-width: 100%; margin: 0 8px; }
+            .modal-body { padding: 20px 16px; }
+            .modal-header { padding: 16px; }
+            .modal-footer { padding: 12px 16px; }
+
+            .toolbar { flex-direction: column; gap: 10px; }
+            .toolbar .search-box { min-width: 100%; }
+            .toolbar > .btn { width: 100%; }
+            .smart-input-row { flex-direction: column; }
+            .smart-input-row .btn { width: 100%; }
+
+            .section-header { flex-direction: column; align-items: flex-start; }
+            .time-filter { width: 100%; }
+            .period-btn { flex: 1; text-align: center; padding: 8px 10px; }
+            .custom-date-row { width: 100%; }
+            .custom-date-row input[type="date"] { flex: 1; }
+
+            .tracking-query-row { flex-direction: column; gap: 10px; }
+            .tracking-query-row .select { max-width: 100% !important; flex-shrink: 1; }
+
+            .toast-container { right: 12px; left: 12px; top: 70px; }
+            .toast { max-width: 100%; }
+
+            /* Hide less important columns on tablet */
+            th.mobile-hide, td.mobile-hide { display: none; }
+
+            /* Auth page tablet */
+            .auth-card { max-width: 380px; }
+            .auth-brand { padding: 26px 16px 22px; }
+            .auth-brand-icon { font-size: 36px; }
+            .auth-brand-title { font-size: 20px; }
+        }
+
+        /* === Responsive - Mobile (480px) === */
+        @media (max-width: 480px) {
+            .header { padding: 0 12px; height: 50px; }
+            .header h1 { font-size: 15px; }
+            .header h1 span { font-size: 18px; }
+            .header-actions .btn { padding: 7px 12px; font-size: 12px; }
+
+            .nav-tabs { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .nav-tabs::-webkit-scrollbar { display: none; }
+            .nav-tab { padding: 10px 12px; font-size: 12px; flex-shrink: 0; }
+
+            .main { padding: 12px; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-card { padding: 12px; }
+            .stat-icon { font-size: 20px; margin-bottom: 4px; }
+            .stat-label { font-size: 11px; margin-bottom: 2px; }
+            .stat-value { font-size: 20px; }
+            .stat-sub { font-size: 10px; }
+
+            .smart-input-area { padding: 16px 14px; }
+            .smart-input-row .btn { width: 100%; padding: 12px; }
+
+            .btn { padding: 10px 16px; font-size: 13px; }
+            .toolbar .btn { width: 100%; }
+
+            .period-btn { padding: 7px 8px; font-size: 12px; }
+            .custom-date-row input[type="date"] { font-size: 12px; padding: 6px 8px; }
+
+            .modal { margin: 0 4px; border-radius: 14px; }
+            .modal-body { padding: 16px 12px; }
+
+            /* Smaller table text on phone */
+            th { padding: 10px 8px; font-size: 11px; }
+            td { padding: 10px 8px; font-size: 12px; }
+
+            /* Auth page mobile */
+            #auth-page { padding: 0; align-items: flex-start; }
+            #auth-page::before, #auth-page::after { display: none; }
+            .auth-card {
+                max-width: 100%;
+                border-radius: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                box-shadow: none;
+            }
+            .auth-brand {
+                padding: 48px 20px 32px;
+                border-radius: 0;
+            }
+            .auth-brand-icon { font-size: 44px; margin-bottom: 10px; }
+            .auth-brand-title { font-size: 21px; }
+            .auth-brand-sub { font-size: 12px; }
+            .auth-tabs { flex-shrink: 0; }
+            .auth-tab { padding: 13px 12px; font-size: 14px; }
+            .auth-body {
+                padding: 24px 20px 32px;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .auth-form .form-group { margin-bottom: 20px; }
+            .auth-form .form-label { font-size: 14px; margin-bottom: 8px; }
+            .auth-input-wrap .input {
+                height: 50px;
+                font-size: 16px;
+                border-radius: 14px;
+                padding-left: 44px;
+            }
+            .auth-input-wrap .input-icon { font-size: 18px; left: 15px; }
+            .auth-form .btn {
+                height: 52px;
+                font-size: 16px;
+                border-radius: 14px;
+                margin-top: 8px;
+            }
+            .auth-error { font-size: 14px; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== Auth Page ========== -->
+<div id="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <span class="auth-brand-icon">📊</span>
+            <div class="auth-brand-title">台账管理系统</div>
+            <div class="auth-brand-sub">Ledger Management System</div>
+        </div>
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchAuthTab('login')">登录</div>
+            <div class="auth-tab" onclick="switchAuthTab('register')">注册</div>
+        </div>
+        <div class="auth-body">
+            <div id="auth-error" class="auth-error"></div>
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <div class="auth-input-wrap">
+                        <span class="input-icon">👤</span>
+                        <input type="text" class="input" id="login-username" placeholder="请输入用户名" autocomplete="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <div class="auth-input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" class="input" id="login-password" placeholder="请输入密码" autocomplete="current-password">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="doLogin()">登 录</button>
+            </div>
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <div class="auth-input-wrap">
+                        <span class="input-icon">👤</span>
+                        <input type="text" class="input" id="reg-username" placeholder="2-50个字符" autocomplete="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">注册码</label>
+                    <div class="auth-input-wrap">
+                        <span class="input-icon">🔑</span>
+                        <input type="text" class="input" id="reg-invite" placeholder="请输入管理员提供的注册码">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <div class="auth-input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" class="input" id="reg-password" placeholder="至少6个字符" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <div class="auth-input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" class="input" id="reg-password2" placeholder="再次输入密码" autocomplete="new-password">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="doRegister()">注 册</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== Main App (hidden until logged in) ========== -->
+<div id="app-container" style="display:none">
+
+<!-- Header -->
+<div class="header">
+    <h1><span style="font-size:22px">📊</span> 台账管理系统</h1>
+    <div class="header-actions">
+        <span id="header-user" style="font-size:13px;opacity:0.85"></span>
+        <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.1)" onclick="openAddModal()">+ 新增记录</button>
+        <button class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);font-size:12px" onclick="doLogout()">退出</button>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav-tabs">
+    <div class="nav-tab active" data-page="dashboard" onclick="switchPage('dashboard')">📈 仪表盘</div>
+    <div class="nav-tab" data-page="records" onclick="switchPage('records')">📋 记录列表</div>
+    <div class="nav-tab" data-page="tracking" onclick="switchPage('tracking')">🚚 快递查询</div>
+    <div class="nav-tab" data-page="admin" onclick="switchPage('admin')" id="nav-admin" style="display:none">👥 用户管理</div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+
+    <!-- ========== Dashboard Page ========== -->
+    <div id="page-dashboard" class="page active">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-label">总订单</div>
+                <div class="stat-value" id="stat-total-orders">-</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">💰</div>
+                <div class="stat-label">总利润</div>
+                <div class="stat-value" id="stat-total-profit">-</div>
+                <div class="stat-sub">售价 - 成本 + 其他</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">利润</div>
+                <div class="stat-value" id="stat-actual-profit">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏷️</div>
+                <div class="stat-label">总成本</div>
+                <div class="stat-value" id="stat-total-cost">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💵</div>
+                <div class="stat-label">总售价</div>
+                <div class="stat-value" id="stat-total-buy">-</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">已回款</div>
+                <div class="stat-value" id="stat-returned">-</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-label">未回款</div>
+                <div class="stat-value" id="stat-unreturned">-</div>
+                <div class="stat-sub">回款率 <span id="stat-return-rate">-</span></div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-label">运输中</div>
+                <div class="stat-value" id="stat-shipping">-</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">📬</div>
+                <div class="stat-label">已签收</div>
+                <div class="stat-value" id="stat-delivered">-</div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header">
+                <div class="section-title">📋 最近记录</div>
+                <div class="time-filter">
+                    <span class="period-btn active" data-period="all" onclick="setTimePeriod('all')">全部</span>
+                    <span class="period-btn" data-period="month" onclick="setTimePeriod('month')">本月</span>
+                    <span class="period-btn" data-period="quarter" onclick="setTimePeriod('quarter')">本季</span>
+                    <span class="period-btn" data-period="year" onclick="setTimePeriod('year')">本年</span>
+                    <span class="period-btn" data-period="custom" onclick="setTimePeriod('custom')">自定义</span>
+                </div>
+            </div>
+            <div class="custom-date-row" id="custom-date-row">
+                <input type="date" id="date-from" onchange="applyCustomDate()">
+                <span class="date-sep">至</span>
+                <input type="date" id="date-to" onchange="applyCustomDate()">
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="mobile-hide">ID</th>
+                            <th>客户</th>
+                            <th>商品</th>
+                            <th>成本</th>
+                            <th>售价</th>
+                            <th>利润</th>
+                            <th>物流</th>
+                            <th>回款</th>
+                            <th>下单时间</th>
+                            <th class="mobile-hide">回款时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboard-table-body">
+                        <tr><td colspan="10" class="empty-state"><p>加载中...</p></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Records Page ========== -->
+    <div id="page-records" class="page">
+        <!-- Smart Input -->
+        <div class="smart-input-area">
+            <h3>✨ 智能录入</h3>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;">
+                自然语言自动解析，例如："老婆 5070显卡 成本 4200 买价 4500" 或 "回款 老婆"
+            </p>
+            <div class="smart-input-row">
+                <input type="text" class="input" id="smart-input" placeholder="输入记录内容，按回车或点击解析...">
+                <button class="btn btn-primary" onclick="parseSmartInput()">🔍 解析</button>
+                <button class="btn btn-success" onclick="parseAndSave()">💾 直接保存</button>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" class="input" id="search-input" placeholder="🔍 搜索客户、商品、快递单号..." oninput="debounceSearch()">
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">+ 手动新增</button>
+            <button class="btn btn-info" onclick="syncTracking()" id="sync-btn">🚚 同步物流</button>
+            <button class="btn btn-outline" onclick="loadRecords()">🔄 刷新</button>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="filter-chips">
+            <div class="chip active" data-filter="all" onclick="setFilter('all')">全部</div>
+            <div class="chip" data-filter="0" onclick="setFilter('0')">未回款</div>
+            <div class="chip" data-filter="1" onclick="setFilter('1')">已回款</div>
+        </div>
+
+        <!-- Records Table -->
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="mobile-hide">ID</th>
+                            <th>客户</th>
+                            <th>商品</th>
+                            <th>成本</th>
+                            <th>售价</th>
+                            <th class="mobile-hide">其他</th>
+                            <th>利润</th>
+                            <th>快递</th>
+                            <th>物流状态</th>
+                            <th>回款</th>
+                            <th class="mobile-hide">备注</th>
+                            <th>下单时间</th>
+                            <th class="mobile-hide">回款时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="records-table-body">
+                        <tr><td colspan="14" class="empty-state"><p>加载中...</p></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Tracking Page ========== -->
+    <div id="page-tracking" class="page">
+        <div class="tracking-card">
+            <h3 style="margin-bottom:16px;font-size:16px">🚚 快递查询</h3>
+            <div class="tracking-query-row" style="display:flex;gap:12px;margin-bottom:16px">
+                <select class="select" id="tracking-company" style="max-width:180px;flex-shrink:0">
+                    <option value="">选择快递公司</option>
+                </select>
+                <input type="text" class="input" id="tracking-no" placeholder="输入快递单号" style="flex:1">
+                <button class="btn btn-primary" onclick="queryTracking()">查询</button>
+            </div>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px">
+                💡 提示：也可以在记录列表中点击「🚚 同步物流」批量更新所有记录的物流状态
+            </p>
+            <div id="tracking-result"></div>
+        </div>
+    </div>
+
+    <!-- ========== Admin Page ========== -->
+    <div id="page-admin" class="page">
+        <div class="admin-section">
+            <div class="section-header">
+                <div class="section-title">👥 用户管理</div>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户名</th>
+                                <th>角色</th>
+                                <th>注册时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr><td colspan="5" class="empty-state"><p>加载中...</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <div class="section-header">
+                <div class="section-title">🔑 注册码管理</div>
+                <button class="btn btn-primary" onclick="generateInviteCode()">+ 生成注册码</button>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>注册码</th>
+                                <th>状态</th>
+                                <th>创建者</th>
+                                <th>使用者</th>
+                                <th>创建时间</th>
+                                <th>使用时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codes-table-body">
+                            <tr><td colspan="8" class="empty-state"><p>加载中...</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== Add/Edit Modal ========== -->
+<div class="modal-overlay" id="record-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="modal-title">新增记录</h2>
+            <button class="modal-close" onclick="closeModal('record-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-id">
+
+            <!-- 基本信息 -->
+            <div class="form-section">
+                <div class="form-section-title">👤 基本信息</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">客户</label>
+                        <input type="text" class="input" id="f-customer" placeholder="客户名称">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">商品</label>
+                        <input type="text" class="input" id="f-product" placeholder="商品名称">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 财务信息 -->
+            <div class="form-section">
+                <div class="form-section-title">💰 财务信息</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">成本价</label>
+                        <input type="number" class="input" id="f-cost" placeholder="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">买价（售价）</label>
+                        <input type="number" class="input" id="f-buy" placeholder="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">其他收入</label>
+                        <input type="number" class="input" id="f-other" placeholder="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">回款状态</label>
+                        <select class="select" id="f-returned">
+                            <option value="0">未回款</option>
+                            <option value="1">已回款</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">利润</label>
+                        <input type="number" class="input" id="f-actual-profit" placeholder="回款后填写" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">回款时间</label>
+                        <input type="datetime-local" class="input" id="f-returned-at">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 物流信息 -->
+            <div class="form-section" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
+                <div class="form-section-title">🚚 物流信息</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">快递单号</label>
+                        <input type="text" class="input" id="f-tracking-no" placeholder="快递单号">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">快递公司</label>
+                        <input type="text" class="input" id="f-tracking-company" placeholder="如 shunfeng, jd">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea class="textarea" id="f-note" placeholder="备注信息"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('record-modal')">取消</button>
+            <button class="btn btn-primary" id="modal-save-btn" onclick="saveRecord()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay confirm-dialog" id="delete-modal">
+    <div class="modal">
+        <div class="modal-body">
+            <div class="icon">⚠️</div>
+            <h3 style="margin-bottom:8px;font-size:16px">确认删除</h3>
+            <p>删除后无法恢复，确定要删除这条记录吗？</p>
+        </div>
+        <div class="modal-footer" style="justify-content:center">
+            <button class="btn btn-outline" onclick="closeModal('delete-modal')">取消</button>
+            <button class="btn btn-danger" id="confirm-delete-btn">确认删除</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+</div><!-- end app-container -->
+
+<script>
+const API = 'http://localhost:8000';
+
+// ========== Auth State ==========
+let authToken = localStorage.getItem('token') || '';
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+
+function showAuthPage() {
+    document.getElementById('auth-page').classList.add('show');
+    document.getElementById('app-container').style.display = 'none';
+}
+
+function showApp() {
+    document.getElementById('auth-page').classList.remove('show');
+    document.getElementById('app-container').style.display = '';
+    // 显示用户信息
+    const hu = document.getElementById('header-user');
+    if (currentUser) {
+        hu.textContent = `${currentUser.username} (${currentUser.role === 'admin' ? '管理员' : '用户'})`;
+        document.getElementById('nav-admin').style.display = currentUser.role === 'admin' ? '' : 'none';
+    }
+    loadDashboard();
+}
+
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    document.getElementById(tab === 'login' ? 'login-form' : 'register-form').classList.add('active');
+    document.querySelectorAll('.auth-tab')[tab === 'login' ? 0 : 1].classList.add('active');
+    document.getElementById('auth-error').classList.remove('show');
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.classList.add('show');
+}
+
+async function doLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!username || !password) { showAuthError('请输入用户名和密码'); return; }
+    try {
+        const resp = await fetch(`${API}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) { showAuthError(data.detail || '登录失败'); return; }
+        authToken = data.access_token;
+        currentUser = data.user;
+        localStorage.setItem('token', authToken);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        showToast('登录成功', 'success');
+        showApp();
+    } catch (e) {
+        showAuthError('网络请求失败');
+    }
+}
+
+async function doRegister() {
+    const username = document.getElementById('reg-username').value.trim();
+    const invite_code = document.getElementById('reg-invite').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const password2 = document.getElementById('reg-password2').value;
+    if (!username || !invite_code || !password) { showAuthError('请填写所有字段'); return; }
+    if (password.length < 6) { showAuthError('密码至少6个字符'); return; }
+    if (password !== password2) { showAuthError('两次密码不一致'); return; }
+    try {
+        const resp = await fetch(`${API}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, invite_code }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) { showAuthError(data.detail || '注册失败'); return; }
+        showToast('注册成功，请登录', 'success');
+        switchAuthTab('login');
+        document.getElementById('login-username').value = username;
+        document.getElementById('login-password').value = '';
+    } catch (e) {
+        showAuthError('网络请求失败');
+    }
+}
+
+function doLogout() {
+    authToken = '';
+    currentUser = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    showAuthPage();
+    showToast('已退出登录');
+}
+
+async function checkAuth() {
+    if (!authToken) { showAuthPage(); return; }
+    try {
+        const resp = await fetch(`${API}/api/auth/me`, {
+            headers: { 'Authorization': `Bearer ${authToken}` },
+        });
+        if (!resp.ok) { showAuthPage(); return; }
+        const data = await resp.json();
+        currentUser = data.data;
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        showApp();
+    } catch (e) {
+        showAuthPage();
+    }
+}
+
+// ========== State ==========
+let currentFilter = 'all';
+let searchTimer = null;
+let allRecords = [];
+let currentTimePeriod = 'all';
+let customDateFrom = '';
+let customDateTo = '';
+
+// ========== Date Helpers ==========
+function getDateRange(period) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    let from = '', to = '';
+    const fmt = d => d.toISOString().slice(0, 10);
+
+    switch (period) {
+        case 'month':
+            from = fmt(new Date(y, m, 1));
+            to = fmt(now);
+            break;
+        case 'quarter':
+            const qStart = Math.floor(m / 3) * 3;
+            from = fmt(new Date(y, qStart, 1));
+            to = fmt(now);
+            break;
+        case 'year':
+            from = fmt(new Date(y, 0, 1));
+            to = fmt(now);
+            break;
+        case 'custom':
+            from = customDateFrom;
+            to = customDateTo;
+            break;
+        default:
+            from = '';
+            to = '';
+    }
+    return { from, to };
+}
+
+function buildDateParams(period) {
+    const { from, to } = getDateRange(period);
+    let params = '';
+    if (from) params += `date_from=${from}&`;
+    if (to) params += `date_to=${to}&`;
+    return params;
+}
+
+function setTimePeriod(period) {
+    currentTimePeriod = period;
+    document.querySelectorAll('.period-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.period === period);
+    });
+    const customRow = document.getElementById('custom-date-row');
+    if (period === 'custom') {
+        customRow.classList.add('show');
+        if (customDateFrom && customDateTo) {
+            loadDashboard();
+        }
+    } else {
+        customRow.classList.remove('show');
+        loadDashboard();
+    }
+}
+
+function applyCustomDate() {
+    customDateFrom = document.getElementById('date-from').value;
+    customDateTo = document.getElementById('date-to').value;
+    if (customDateFrom && customDateTo) {
+        loadDashboard();
+    }
+}
+
+// ========== Navigation ==========
+function switchPage(page) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelector(`.nav-tab[data-page="${page}"]`).classList.add('active');
+    document.getElementById(`page-${page}`).classList.add('active');
+
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'records') loadRecords();
+    if (page === 'tracking') loadCompanies();
+    if (page === 'admin') loadAdminPage();
+}
+
+// ========== Toast ==========
+function showToast(msg, type = '') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ========== API Helpers ==========
+async function api(path, options = {}) {
+    try {
+        const headers = { 'Content-Type': 'application/json', ...options.headers };
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+        const resp = await fetch(`${API}${path}`, { ...options, headers });
+        if (resp.status === 401) {
+            doLogout();
+            showToast('登录已过期，请重新登录', 'error');
+            throw new Error('Unauthorized');
+        }
+        return await resp.json();
+    } catch (e) {
+        if (e.message !== 'Unauthorized') {
+            showToast('网络请求失败，请检查后端是否启动', 'error');
+        }
+        throw e;
+    }
+}
+
+function formatMoney(v) {
+    if (v === null || v === undefined) return '-';
+    return `¥${Number(v).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
+}
+
+// ========== Tracking Badge ==========
+function trackingBadge(state, stateText) {
+    if (!stateText || stateText === '未查询') return '<span class="badge badge-gray">未查询</span>';
+    const map = {
+        '0': ['badge-gray', '❓'],
+        '1': ['badge-gray', '📭'],
+        '2': ['badge-info', '🚚'],
+        '3': ['badge-success', '✅'],
+        '4': ['badge-warning', '⚠️'],
+        '5': ['badge-danger', '❓'],
+        '6': ['badge-purple', '↩️'],
+    };
+    const [cls, icon] = map[state] || ['badge-gray', '❓'];
+    return `<span class="badge ${cls}">${icon} ${stateText}</span>`;
+}
+
+// ========== Dashboard ==========
+async function loadDashboard() {
+    try {
+        const dateParams = buildDateParams(currentTimePeriod);
+        const [statsRes, recordsRes] = await Promise.all([
+            api(`/api/stats?${dateParams}`),
+            api(`/api/records?${dateParams}`),
+        ]);
+
+        const s = statsRes.data;
+        document.getElementById('stat-total-orders').textContent = s.total_orders;
+        document.getElementById('stat-total-profit').textContent = formatMoney(s.total_profit);
+        document.getElementById('stat-actual-profit').textContent = formatMoney(s.total_actual_profit);
+        document.getElementById('stat-total-cost').textContent = formatMoney(s.total_cost);
+        document.getElementById('stat-total-buy').textContent = formatMoney(s.total_buy_price);
+        document.getElementById('stat-returned').textContent = s.returned_count;
+        document.getElementById('stat-unreturned').textContent = s.unreturned_count;
+        document.getElementById('stat-return-rate').textContent = `${s.return_rate}%`;
+        document.getElementById('stat-shipping').textContent = s.shipping_count;
+        document.getElementById('stat-delivered').textContent = s.delivered_count;
+
+        const records = recordsRes.data.slice(0, 10);
+        renderDashboardTable(records);
+    } catch (e) {
+        console.error('Dashboard load error:', e);
+    }
+}
+
+function renderDashboardTable(records) {
+    const tbody = document.getElementById('dashboard-table-body');
+    if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="icon">📭</div><p>暂无记录</p></div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = records.map(r => `
+        <tr>
+            <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">#${r.id}</td>
+            <td><strong>${r.customer || '-'}</strong></td>
+            <td>${r.product || '-'}</td>
+            <td>${formatMoney(r.cost_price)}</td>
+            <td>${formatMoney(r.buy_price)}</td>
+            <td class="profit-cell ${profitClass(r.profit)}">${formatMoney(r.profit)}</td>
+            <td>${trackingBadge(r.tracking_state, r.tracking_state_text)}</td>
+            <td>${r.is_returned ? '<span class="badge badge-success">已回款</span>' : '<span class="badge badge-warning">未回款</span>'}</td>
+            <td style="color:var(--gray-400);font-size:12px">${r.created_at || '-'}</td>
+            <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">${r.returned_at || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+function profitClass(v) {
+    if (!v || v === 0) return 'profit-zero';
+    return v > 0 ? 'profit-positive' : 'profit-negative';
+}
+
+// ========== Records ==========
+async function loadRecords() {
+    try {
+        const search = document.getElementById('search-input').value.trim();
+        let url = '/api/records?';
+        if (search) url += `search=${encodeURIComponent(search)}&`;
+        if (currentFilter !== 'all') url += `is_returned=${currentFilter}&`;
+
+        const res = await api(url);
+        allRecords = res.data;
+        renderRecordsTable(allRecords);
+    } catch (e) {
+        console.error('Records load error:', e);
+    }
+}
+
+function renderRecordsTable(records) {
+    const tbody = document.getElementById('records-table-body');
+    if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><div class="icon">📭</div><p>暂无记录</p></div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = records.map(r => `
+        <tr>
+            <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">#${r.id}</td>
+            <td><strong>${r.customer || '-'}</strong></td>
+            <td>${r.product || '-'}</td>
+            <td>${formatMoney(r.cost_price)}</td>
+            <td>${formatMoney(r.buy_price)}</td>
+            <td class="mobile-hide">${formatMoney(r.other_income)}</td>
+            <td class="profit-cell ${profitClass(r.profit)}">${formatMoney(r.profit)}</td>
+            <td style="font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${r.tracking_no || ''}">${r.tracking_no || '-'}</td>
+            <td>${trackingBadge(r.tracking_state, r.tracking_state_text)}</td>
+            <td>${r.is_returned ? '<span class="badge badge-success">已回款</span>' : '<span class="badge badge-warning">未回款</span>'}</td>
+            <td class="mobile-hide" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${r.note || ''}">${r.note || '-'}</td>
+            <td style="color:var(--gray-400);font-size:12px">${r.created_at || '-'}</td>
+            <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">${r.returned_at || '-'}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn btn-outline btn-sm" onclick="openEditModal(${r.id})" title="编辑">✏️</button>
+                    ${!r.is_returned ? `<button class="btn btn-success btn-sm" onclick="markReturned(${r.id})" title="标记回款">💰</button>` : ''}
+                    <button class="btn btn-danger btn-sm" onclick="confirmDelete(${r.id})" title="删除">🗑️</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function setFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.filter === filter);
+    });
+    loadRecords();
+}
+
+function debounceSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadRecords, 300);
+}
+
+// ========== Smart Input ==========
+async function parseSmartInput() {
+    const input = document.getElementById('smart-input').value.trim();
+    if (!input) { showToast('请输入内容', 'error'); return; }
+
+    try {
+        const res = await api('/api/records/parse', {
+            method: 'POST',
+            body: JSON.stringify({ text: input }),
+        });
+        const d = res.data;
+        if (d.error) { showToast(d.error, 'error'); return; }
+
+        document.getElementById('edit-id').value = '';
+        document.getElementById('f-customer').value = d.customer || '';
+        document.getElementById('f-product').value = d.product || '';
+        document.getElementById('f-cost').value = d.cost_price || 0;
+        document.getElementById('f-buy').value = d.buy_price || 0;
+        document.getElementById('f-other').value = d.other_income || 0;
+        document.getElementById('f-returned').value = d.is_returned || 0;
+        document.getElementById('f-actual-profit').value = '';
+        document.getElementById('f-returned-at').value = '';
+        document.getElementById('f-tracking-no').value = d.tracking_no || '';
+        document.getElementById('f-tracking-company').value = d.tracking_company || '';
+        document.getElementById('f-note').value = d.note || '';
+
+        document.getElementById('modal-title').textContent = '确认记录信息';
+        openModal('record-modal');
+        showToast('解析成功，请确认信息', 'success');
+    } catch (e) {
+        console.error('Parse error:', e);
+    }
+}
+
+async function parseAndSave() {
+    const input = document.getElementById('smart-input').value.trim();
+    if (!input) { showToast('请输入内容', 'error'); return; }
+
+    try {
+        const res = await api('/api/records/parse', {
+            method: 'POST',
+            body: JSON.stringify({ text: input }),
+        });
+        const d = res.data;
+        if (d.error) { showToast(d.error, 'error'); return; }
+
+        const saveRes = await api('/api/records', {
+            method: 'POST',
+            body: JSON.stringify({
+                customer: d.customer || '',
+                product: d.product || '',
+                cost_price: d.cost_price || 0,
+                buy_price: d.buy_price || 0,
+                other_income: d.other_income || 0,
+                tracking_no: d.tracking_no || '',
+                tracking_company: d.tracking_company || '',
+                is_returned: d.is_returned || 0,
+                note: d.note || '',
+                raw_input: input,
+            }),
+        });
+
+        if (saveRes.data) {
+            showToast('记录保存成功！', 'success');
+            document.getElementById('smart-input').value = '';
+            loadRecords();
+            loadDashboard();
+        }
+    } catch (e) {
+        showToast('保存失败', 'error');
+    }
+}
+
+// ========== Modal ==========
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openAddModal() {
+    document.getElementById('modal-title').textContent = '新增记录';
+    document.getElementById('edit-id').value = '';
+    document.getElementById('f-customer').value = '';
+    document.getElementById('f-product').value = '';
+    document.getElementById('f-cost').value = '';
+    document.getElementById('f-buy').value = '';
+    document.getElementById('f-other').value = '0';
+    document.getElementById('f-returned').value = '0';
+    document.getElementById('f-actual-profit').value = '';
+    document.getElementById('f-returned-at').value = '';
+    document.getElementById('f-tracking-no').value = '';
+    document.getElementById('f-tracking-company').value = '';
+    document.getElementById('f-note').value = '';
+    openModal('record-modal');
+}
+
+async function openEditModal(id) {
+    const record = allRecords.find(r => r.id === id);
+    if (!record) { showToast('记录不存在', 'error'); return; }
+
+    document.getElementById('modal-title').textContent = '编辑记录';
+    document.getElementById('edit-id').value = record.id;
+    document.getElementById('f-customer').value = record.customer || '';
+    document.getElementById('f-product').value = record.product || '';
+    document.getElementById('f-cost').value = record.cost_price || 0;
+    document.getElementById('f-buy').value = record.buy_price || 0;
+    document.getElementById('f-other').value = record.other_income || 0;
+    document.getElementById('f-returned').value = record.is_returned || 0;
+    document.getElementById('f-actual-profit').value = record.actual_profit || '';
+    document.getElementById('f-returned-at').value = record.returned_at ? record.returned_at.replace(' ', 'T').substring(0, 16) : '';
+    document.getElementById('f-tracking-no').value = record.tracking_no || '';
+    document.getElementById('f-tracking-company').value = record.tracking_company || '';
+    document.getElementById('f-note').value = record.note || '';
+    openModal('record-modal');
+}
+
+async function saveRecord() {
+    const id = document.getElementById('edit-id').value;
+    const returnedAtVal = document.getElementById('f-returned-at').value;
+    const data = {
+        customer: document.getElementById('f-customer').value.trim(),
+        product: document.getElementById('f-product').value.trim(),
+        cost_price: parseFloat(document.getElementById('f-cost').value) || 0,
+        buy_price: parseFloat(document.getElementById('f-buy').value) || 0,
+        other_income: parseFloat(document.getElementById('f-other').value) || 0,
+        is_returned: parseInt(document.getElementById('f-returned').value) || 0,
+        actual_profit: parseFloat(document.getElementById('f-actual-profit').value) || 0,
+        returned_at: returnedAtVal ? returnedAtVal.replace('T', ' ') + ':00' : null,
+        tracking_no: document.getElementById('f-tracking-no').value.trim(),
+        tracking_company: document.getElementById('f-tracking-company').value.trim(),
+        note: document.getElementById('f-note').value.trim(),
+    };
+
+    try {
+        if (id) {
+            await api(`/api/records/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+            showToast('记录更新成功', 'success');
+        } else {
+            data.raw_input = '';
+            await api('/api/records', { method: 'POST', body: JSON.stringify(data) });
+            showToast('记录创建成功', 'success');
+        }
+        closeModal('record-modal');
+        loadRecords();
+        loadDashboard();
+    } catch (e) {
+        showToast('保存失败', 'error');
+    }
+}
+
+// ========== Delete ==========
+function confirmDelete(id) {
+    openModal('delete-modal');
+    document.getElementById('confirm-delete-btn').onclick = async () => {
+        try {
+            await api(`/api/records/${id}`, { method: 'DELETE' });
+            showToast('删除成功', 'success');
+            closeModal('delete-modal');
+            loadRecords();
+            loadDashboard();
+        } catch (e) {
+            showToast('删除失败', 'error');
+        }
+    };
+}
+
+// ========== Mark Returned ==========
+async function markReturned(id) {
+    try {
+        await api(`/api/records/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ is_returned: 1 }),
+        });
+        showToast('已标记为回款', 'success');
+        loadRecords();
+        loadDashboard();
+    } catch (e) {
+        showToast('操作失败', 'error');
+    }
+}
+
+// ========== Sync Tracking ==========
+async function syncTracking() {
+    const btn = document.getElementById('sync-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 同步中...';
+    try {
+        const res = await api('/api/tracking/sync', { method: 'POST' });
+        showToast(res.data.message || '同步完成', 'success');
+        loadRecords();
+        loadDashboard();
+    } catch (e) {
+        showToast('同步失败', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🚚 同步物流';
+    }
+}
+
+// ========== Tracking Page ==========
+async function loadCompanies() {
+    try {
+        const res = await api('/api/tracking/companies');
+        const select = document.getElementById('tracking-company');
+        if (select.options.length > 1) return;
+        Object.entries(res.data).forEach(([key, name]) => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    } catch (e) {}
+}
+
+async function queryTracking() {
+    const company = document.getElementById('tracking-company').value;
+    const no = document.getElementById('tracking-no').value.trim();
+    if (!company || !no) { showToast('请选择快递公司并输入单号', 'error'); return; }
+
+    const resultDiv = document.getElementById('tracking-result');
+    resultDiv.innerHTML = '<p style="color:var(--gray-400)">查询中...</p>';
+
+    try {
+        const res = await api(`/api/tracking/${company}/${no}`);
+        const d = res.data;
+
+        if (!d.success) {
+            resultDiv.innerHTML = `<div class="tracking-card" style="border-left:3px solid var(--danger)"><p style="color:var(--danger);font-weight:600">${d.message || '查询失败'}</p><p style="color:var(--gray-400);font-size:13px">${d.state_text}</p></div>`;
+            return;
+        }
+
+        let html = `
+            <div class="tracking-card" style="border-left:3px solid var(--primary)">
+                <h4 style="margin-bottom:10px;font-size:15px">${d.company} · ${d.tracking_no}</h4>
+                <p style="margin-bottom:4px;font-size:13px"><strong>状态：</strong>${trackingBadge(d.state, d.state_text)}</p>
+                <p style="margin-bottom:16px;font-size:13px;color:var(--gray-500)"><strong>最新：</strong>${d.latest_time} — ${d.latest_context}</p>
+        `;
+
+        if (d.history && d.history.length) {
+            html += '<div class="tracking-timeline">';
+            d.history.forEach(item => {
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-time">${item.time}</div>
+                        <div class="timeline-text">${item.context}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+
+        html += '</div>';
+        resultDiv.innerHTML = html;
+    } catch (e) {
+        resultDiv.innerHTML = '<p style="color:var(--danger)">查询失败</p>';
+    }
+}
+
+// ========== Admin Page ==========
+async function loadAdminPage() {
+    await Promise.all([loadUsers(), loadInviteCodes()]);
+}
+
+async function loadUsers() {
+    try {
+        const res = await api('/api/admin/users');
+        const tbody = document.getElementById('users-table-body');
+        if (!res.data.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>暂无用户</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = res.data.map(u => `
+            <tr>
+                <td style="color:var(--gray-400);font-size:12px">#${u.id}</td>
+                <td><strong>${u.username}</strong></td>
+                <td>${u.role === 'admin' ? '<span class="badge badge-purple">管理员</span>' : '<span class="badge badge-gray">用户</span>'}</td>
+                <td style="color:var(--gray-400);font-size:12px">${u.created_at || '-'}</td>
+                <td>
+                    <div class="action-btns">
+                        ${u.id !== currentUser.id ? `
+                            ${u.role === 'admin'
+                                ? `<button class="btn btn-outline btn-sm" onclick="updateUserRole(${u.id},'user')" title="设为普通用户">⬇️ 降为用户</button>`
+                                : `<button class="btn btn-info btn-sm" onclick="updateUserRole(${u.id},'admin')" title="设为管理员">⬆️ 升为管理员</button>`
+                            }
+                            <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})" title="删除用户">🗑️</button>
+                        ` : '<span style="color:var(--gray-400);font-size:12px">当前用户</span>'}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {}
+}
+
+async function loadInviteCodes() {
+    try {
+        const res = await api('/api/admin/invite-codes');
+        const tbody = document.getElementById('codes-table-body');
+        if (!res.data.length) {
+            tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>暂无注册码，点击上方按钮生成</p></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = res.data.map(c => `
+            <tr>
+                <td style="color:var(--gray-400);font-size:12px">#${c.id}</td>
+                <td><code style="background:var(--gray-100);padding:2px 8px;border-radius:4px;font-size:13px;letter-spacing:0.5px">${c.code}</code></td>
+                <td>${c.is_used ? '<span class="badge badge-gray">已使用</span>' : '<span class="badge badge-success">可用</span>'}</td>
+                <td style="font-size:12px">${c.creator_name || '-'}</td>
+                <td style="font-size:12px">${c.used_by_name || '-'}</td>
+                <td style="color:var(--gray-400);font-size:12px">${c.created_at || '-'}</td>
+                <td style="color:var(--gray-400);font-size:12px">${c.used_at || '-'}</td>
+                <td>
+                    <div class="action-btns">
+                        <button class="btn btn-outline btn-sm" onclick="copyCode('${c.code}')" title="复制">📋</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteInviteCode(${c.id})" title="删除">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {}
+}
+
+async function generateInviteCode() {
+    try {
+        const res = await api('/api/admin/invite-codes', { method: 'POST' });
+        showToast(`注册码已生成: ${res.data.code}`, 'success');
+        loadInviteCodes();
+    } catch (e) {
+        showToast('生成失败', 'error');
+    }
+}
+
+async function deleteInviteCode(id) {
+    if (!confirm('确定删除此注册码？')) return;
+    try {
+        await api(`/api/admin/invite-codes/${id}`, { method: 'DELETE' });
+        showToast('已删除', 'success');
+        loadInviteCodes();
+    } catch (e) {
+        showToast('删除失败', 'error');
+    }
+}
+
+async function deleteUser(id) {
+    if (!confirm('确定删除此用户？')) return;
+    try {
+        await api(`/api/admin/users/${id}`, { method: 'DELETE' });
+        showToast('用户已删除', 'success');
+        loadUsers();
+    } catch (e) {
+        showToast('删除失败', 'error');
+    }
+}
+
+async function updateUserRole(id, role) {
+    try {
+        await api(`/api/admin/users/${id}/role`, {
+            method: 'PUT',
+            body: JSON.stringify({ role }),
+        });
+        showToast('角色已更新', 'success');
+        loadUsers();
+    } catch (e) {
+        showToast('操作失败', 'error');
+    }
+}
+
+function copyCode(code) {
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('已复制到剪贴板', 'success');
+    }).catch(() => {
+        showToast('复制失败', 'error');
+    });
+}
+
+// ========== Keyboard Events ==========
+document.getElementById('smart-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') parseSmartInput();
+});
+
+document.getElementById('tracking-no').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') queryTracking();
+});
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+
+// ========== Init ==========
+// Login Enter key
+document.getElementById('login-password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doLogin();
+});
+document.getElementById('login-username').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doLogin();
+});
+document.getElementById('reg-password2').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doRegister();
+});
+checkAuth();
+</script>
+</body>
+</html>
