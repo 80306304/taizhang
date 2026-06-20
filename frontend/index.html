@@ -1474,7 +1474,7 @@
 </div><!-- end app-container -->
 
 <script>
-const API = 'http://localhost:8000';
+const API = `${location.protocol}//${location.hostname}:8000`;
 
 // ========== Auth State ==========
 let authToken = localStorage.getItem('token') || '';
