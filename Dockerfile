@@ -12,6 +12,9 @@ COPY frontend/ frontend/
 # 安装依赖
 RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com -r backend/requirements.txt
 
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 EXPOSE 8000
 
 WORKDIR /app/backend

@@ -22,9 +22,25 @@ def parse_record_text(text: str) -> dict:
         "tracking_no": "",
         "tracking_company": "",
         "is_returned": 0,
+        "created_at": "",
         "note": "",
         "raw_input": text,
     }
+
+    # 提取日期（支持 2025-06-18、2025/06/18、06-18、06/18）
+    from datetime import datetime
+    m = re.search(r"\b(\d{4})[-/](\d{1,2})[-/](\d{1,2})\b", text)
+    if m:
+        y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        result["created_at"] = f"{y:04d}-{mo:02d}-{d:02d} 00:00:00"
+        text = text[:m.start()] + text[m.end():]
+    else:
+        m = re.search(r"\b(\d{1,2})[-/](\d{1,2})\b", text)
+        if m:
+            mo, d = int(m.group(1)), int(m.group(2))
+            y = datetime.now().year
+            result["created_at"] = f"{y:04d}-{mo:02d}-{d:02d} 00:00:00"
+            text = text[:m.start()] + text[m.end():]
 
     # 检测操作类型：回款
     for pat in [r"^回款\b", r"^已回款", r"^标记回款", r"^确认回款"]:

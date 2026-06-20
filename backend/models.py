@@ -13,6 +13,7 @@ class RecordCreate(BaseModel):
     tracking_company: str = ""
     is_returned: int = 0
     returned_at: Optional[str] = None
+    created_at: Optional[str] = None
     note: str = ""
     raw_input: str = ""
 
@@ -28,6 +29,7 @@ class RecordUpdate(BaseModel):
     tracking_company: Optional[str] = None
     is_returned: Optional[int] = None
     returned_at: Optional[str] = None
+    created_at: Optional[str] = None
     note: Optional[str] = None
 
 

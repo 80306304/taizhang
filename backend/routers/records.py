@@ -63,30 +63,58 @@ async def create_record(
     """创建新记录"""
     user_id = current_user["id"]
     profit = record.buy_price - record.cost_price + record.other_income
-    cursor = await db.execute(
-        """INSERT INTO records
-           (customer, product, cost_price, buy_price, other_income, profit,
-            actual_profit,
-            tracking_no, tracking_company, is_returned, returned_at, note, raw_input, user_id)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-           RETURNING id""",
-        (
-            record.customer,
-            record.product,
-            record.cost_price,
-            record.buy_price,
-            record.other_income,
-            profit,
-            record.actual_profit,
-            record.tracking_no,
-            record.tracking_company,
-            record.is_returned,
-            record.returned_at,
-            record.note,
-            record.raw_input,
-            user_id,
-        ),
-    )
+
+    if record.created_at:
+        cursor = await db.execute(
+            """INSERT INTO records
+               (customer, product, cost_price, buy_price, other_income, profit,
+                actual_profit, created_at,
+                tracking_no, tracking_company, is_returned, returned_at, note, raw_input, user_id)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               RETURNING id""",
+            (
+                record.customer,
+                record.product,
+                record.cost_price,
+                record.buy_price,
+                record.other_income,
+                profit,
+                record.actual_profit,
+                record.created_at,
+                record.tracking_no,
+                record.tracking_company,
+                record.is_returned,
+                record.returned_at,
+                record.note,
+                record.raw_input,
+                user_id,
+            ),
+        )
+    else:
+        cursor = await db.execute(
+            """INSERT INTO records
+               (customer, product, cost_price, buy_price, other_income, profit,
+                actual_profit,
+                tracking_no, tracking_company, is_returned, returned_at, note, raw_input, user_id)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               RETURNING id""",
+            (
+                record.customer,
+                record.product,
+                record.cost_price,
+                record.buy_price,
+                record.other_income,
+                profit,
+                record.actual_profit,
+                record.tracking_no,
+                record.tracking_company,
+                record.is_returned,
+                record.returned_at,
+                record.note,
+                record.raw_input,
+                user_id,
+            ),
+        )
     row = await cursor.fetchone()
     record_id = row["id"]
     await db.commit()

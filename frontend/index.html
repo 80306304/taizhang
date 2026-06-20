@@ -1234,10 +1234,10 @@
         <div class="smart-input-area">
             <h3>✨ 智能录入</h3>
             <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;">
-                自然语言自动解析，例如："老婆 5070显卡 成本 4200 买价 4500" 或 "回款 老婆"
+                自然语言自动解析，例如："老婆 5070显卡 成本 4200 买价 4500 2025-06-18" 或 "回款 老婆"
             </p>
             <div class="smart-input-row">
-                <input type="text" class="input" id="smart-input" placeholder="输入记录内容，按回车或点击解析...">
+                <input type="text" class="input" id="smart-input" placeholder="例如：老婆 5070显卡 成本 4200 买价 4500 2025-06-18">
                 <button class="btn btn-primary" onclick="parseSmartInput()">🔍 解析</button>
                 <button class="btn btn-success" onclick="parseAndSave()">💾 直接保存</button>
             </div>
@@ -1386,6 +1386,13 @@
                         <label class="form-label">商品</label>
                         <input type="text" class="input" id="f-product" placeholder="商品名称">
                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">下单时间</label>
+                        <input type="datetime-local" class="input" id="f-created-at">
+                    </div>
+                    <div class="form-group"></div>
                 </div>
             </div>
 
@@ -1859,6 +1866,7 @@ async function parseSmartInput() {
         document.getElementById('edit-id').value = '';
         document.getElementById('f-customer').value = d.customer || '';
         document.getElementById('f-product').value = d.product || '';
+        document.getElementById('f-created-at').value = d.created_at ? d.created_at.replace(' ', 'T').substring(0, 16) : '';
         document.getElementById('f-cost').value = d.cost_price || 0;
         document.getElementById('f-buy').value = d.buy_price || 0;
         document.getElementById('f-other').value = d.other_income || 0;
@@ -1889,9 +1897,7 @@ async function parseAndSave() {
         const d = res.data;
         if (d.error) { showToast(d.error, 'error'); return; }
 
-        const saveRes = await api('/api/records', {
-            method: 'POST',
-            body: JSON.stringify({
+        const saveData = {
                 customer: d.customer || '',
                 product: d.product || '',
                 cost_price: d.cost_price || 0,
@@ -1902,7 +1908,12 @@ async function parseAndSave() {
                 is_returned: d.is_returned || 0,
                 note: d.note || '',
                 raw_input: input,
-            }),
+        };
+        if (d.created_at) saveData.created_at = d.created_at;
+
+        const saveRes = await api('/api/records', {
+            method: 'POST',
+            body: JSON.stringify(saveData),
         });
 
         if (saveRes.data) {
@@ -1925,6 +1936,7 @@ function openAddModal() {
     document.getElementById('edit-id').value = '';
     document.getElementById('f-customer').value = '';
     document.getElementById('f-product').value = '';
+    document.getElementById('f-created-at').value = '';
     document.getElementById('f-cost').value = '';
     document.getElementById('f-buy').value = '';
     document.getElementById('f-other').value = '0';
@@ -1945,6 +1957,7 @@ async function openEditModal(id) {
     document.getElementById('edit-id').value = record.id;
     document.getElementById('f-customer').value = record.customer || '';
     document.getElementById('f-product').value = record.product || '';
+    document.getElementById('f-created-at').value = record.created_at ? record.created_at.replace(' ', 'T').substring(0, 16) : '';
     document.getElementById('f-cost').value = record.cost_price || 0;
     document.getElementById('f-buy').value = record.buy_price || 0;
     document.getElementById('f-other').value = record.other_income || 0;
@@ -1960,6 +1973,7 @@ async function openEditModal(id) {
 async function saveRecord() {
     const id = document.getElementById('edit-id').value;
     const returnedAtVal = document.getElementById('f-returned-at').value;
+    const createdAtVal = document.getElementById('f-created-at').value;
     const data = {
         customer: document.getElementById('f-customer').value.trim(),
         product: document.getElementById('f-product').value.trim(),
@@ -1973,6 +1987,10 @@ async function saveRecord() {
         tracking_company: document.getElementById('f-tracking-company').value.trim(),
         note: document.getElementById('f-note').value.trim(),
     };
+
+    if (createdAtVal) {
+        data.created_at = createdAtVal.replace('T', ' ') + ':00';
+    }
 
     try {
         if (id) {
