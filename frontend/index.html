@@ -66,7 +66,7 @@
             gap: 10px;
         }
 
-        .header-actions { display: flex; gap: 10px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
 
         /* === Navigation Tabs === */
         .nav-tabs {
@@ -336,7 +336,6 @@
             border: 1px solid var(--glass-border);
             border-radius: var(--radius);
             box-shadow: var(--glass-shadow);
-            overflow: hidden;
         }
 
         .table-scroll {
@@ -1391,6 +1390,7 @@
                 </table>
             </div>
         </div>
+        <div id="dashboard-pagination" class="pagination"></div>
     </div>
 
     <!-- ========== Records Page ========== -->
@@ -1414,6 +1414,7 @@
                 <input type="text" class="input" id="search-input" placeholder="🔍 搜索客户、商品、快递单号..." oninput="debounceSearch()">
             </div>
             <button class="btn btn-primary" onclick="openAddModal()">+ 手动新增</button>
+            <button class="btn btn-outline" onclick="openImportModal()">📥 导入</button>
             <button class="btn btn-info" onclick="syncTracking()" id="sync-btn">🚚 同步物流</button>
             <button class="btn btn-outline" onclick="loadRecords()">🔄 刷新</button>
         </div>
@@ -1677,6 +1678,31 @@
         <div class="modal-footer" style="justify-content:center">
             <button class="btn btn-outline" onclick="closeModal('delete-modal')">取消</button>
             <button class="btn btn-danger" id="confirm-delete-btn">确认删除</button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="import-modal">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <h3>📥 导入 Excel</h3>
+            <button class="modal-close" onclick="closeModal('import-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">
+                请先下载模板，按模板格式填写数据后上传。
+            </p>
+            <button class="btn btn-outline" onclick="downloadTemplate()" style="margin-bottom:20px;width:100%">📄 下载导入模板</button>
+            <div style="border-top:1px solid var(--gray-100);padding-top:16px">
+                <label class="form-label">选择文件（.xlsx）</label>
+                <input type="file" id="import-file" accept=".xlsx" class="input" style="padding:8px">
+            </div>
+            <div id="import-result" style="margin-top:12px;display:none"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('import-modal')">取消</button>
+            <button class="btn btn-primary" id="import-btn" onclick="doImport()">开始导入</button>
         </div>
     </div>
 </div>
@@ -2039,12 +2065,16 @@ function trackingBadge(state, stateText) {
 }
 
 // ========== Dashboard ==========
-async function loadDashboard() {
+let dashboardPage = 1;
+const DASHBOARD_PAGE_SIZE = 10;
+
+async function loadDashboard(page) {
+    dashboardPage = page || 1;
     try {
         const dateParams = buildDateParams(currentTimePeriod);
         const [statsRes, recordsRes] = await Promise.all([
             api(`/api/stats?${dateParams}`),
-            api(`/api/records?${dateParams}`),
+            api(`/api/records?${dateParams}page=${dashboardPage}&page_size=${DASHBOARD_PAGE_SIZE}`),
         ]);
 
         const s = statsRes.data;
@@ -2059,8 +2089,9 @@ async function loadDashboard() {
         document.getElementById('stat-shipping').textContent = s.shipping_count;
         document.getElementById('stat-delivered').textContent = s.delivered_count;
 
-        const records = recordsRes.data.slice(0, 10);
+        const records = recordsRes.data;
         renderDashboardTable(records);
+        renderPagination('dashboard-pagination', recordsRes.total, recordsRes.page, recordsRes.page_size, loadDashboard);
         initColumnResizers(document.querySelector('#page-dashboard table'));
     } catch (e) {
         console.error('Dashboard load error:', e);
@@ -2156,6 +2187,71 @@ function setFilter(filter) {
 function debounceSearch() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(loadRecords, 300);
+}
+
+// ========== Excel Import ==========
+function openImportModal() {
+    document.getElementById('import-file').value = '';
+    document.getElementById('import-result').style.display = 'none';
+    openModal('import-modal');
+}
+
+function downloadTemplate() {
+    const a = document.createElement('a');
+    a.href = `${API}/api/records/import/template`;
+    a.setAttribute('download', 'import_template.xlsx');
+    // 需要带 token
+    fetch(`${API}/api/records/import/template`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+    }).then(r => r.blob()).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'import_template.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+}
+
+async function doImport() {
+    const fileInput = document.getElementById('import-file');
+    if (!fileInput.files.length) { showToast('请选择文件', 'error'); return; }
+
+    const btn = document.getElementById('import-btn');
+    btn.disabled = true;
+    btn.textContent = '导入中...';
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const resp = await fetch(`${API}/api/records/import`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${authToken}` },
+            body: formData,
+        });
+        const res = await resp.json();
+        const resultDiv = document.getElementById('import-result');
+        resultDiv.style.display = 'block';
+
+        if (res.error) {
+            resultDiv.innerHTML = `<div style="color:var(--danger);font-size:13px">❌ ${res.error}</div>`;
+        } else {
+            const d = res.data;
+            let html = `<div style="color:var(--success);font-size:13px;font-weight:600">✅ ${d.message}</div>`;
+            if (d.errors && d.errors.length) {
+                html += `<div style="color:var(--danger);font-size:12px;margin-top:8px">错误详情：<br>${d.errors.join('<br>')}</div>`;
+            }
+            resultDiv.innerHTML = html;
+            showToast(d.message, 'success');
+            loadRecords();
+        }
+    } catch (e) {
+        showToast('导入失败，请重试', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '开始导入';
+    }
 }
 
 // ========== Smart Input ==========

@@ -10,16 +10,6 @@ from services.scheduler import refresh_schedule
 router = APIRouter(prefix="/api/tracking", tags=["tracking"])
 
 
-@router.get("/{company}/{tracking_no}")
-async def get_tracking(
-    company: str, tracking_no: str,
-    current_user: dict = Depends(get_current_user),
-):
-    """查询快递状态"""
-    result = await query_tracking(company, tracking_no)
-    return {"data": result}
-
-
 @router.get("/companies")
 async def list_companies(current_user: dict = Depends(get_current_user)):
     """获取支持的快递公司列表"""
@@ -159,7 +149,8 @@ async def get_cron(current_user: dict = Depends(get_current_user)):
     async with pool.connection() as db:
         cursor = await db.execute("SELECT value FROM site_config WHERE key='tracking_cron'")
         row = await cursor.fetchone()
-    return {"data": {"cron": dict(row)["value"] if row else "0 */3 * * *"}}
+    # pool.connection() 不带 dict_row，row 是 tuple
+    return {"data": {"cron": row[0] if row else "0 */3 * * *"}}
 
 
 @router.put("/cron")
@@ -182,3 +173,14 @@ async def update_cron(body: dict, current_user: dict = Depends(get_current_user)
     # 刷新调度器
     await refresh_schedule(cron_expr)
     return {"data": {"cron": cron_expr, "message": "定时任务已更新"}}
+
+
+# 通配路由放最后，避免拦截 /companies、/status/{id}、/cron 等具体路径
+@router.get("/{company}/{tracking_no}")
+async def get_tracking(
+    company: str, tracking_no: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """查询快递状态"""
+    result = await query_tracking(company, tracking_no)
+    return {"data": result}

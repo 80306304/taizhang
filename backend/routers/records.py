@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
+from fastapi.responses import StreamingResponse
 from typing import Optional
 import psycopg
+import io
 
 from database import get_db
 from auth import get_current_user
@@ -227,3 +229,100 @@ async def parse_text(
         f.write(f"PRODUCT: {repr(result.get('product', ''))}\n")
         f.write(f"BUY: {result.get('buy_price', 0)}\n")
     return {"data": result}
+
+
+@router.get("/import/template")
+async def download_import_template(current_user: dict = Depends(get_current_user)):
+    """下载导入模板"""
+    from openpyxl import Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "导入模板"
+    headers = ["客户", "商品", "成本价", "售价", "其他收入", "实际利润", "快递单号", "快递公司", "是否回款", "下单时间", "备注"]
+    ws.append(headers)
+    # 示例行
+    ws.append(["张三", "RTX5070显卡", 4200, 4500, 0, 300, "SF1234567890", "shunfeng", "否", "2025-06-18", ""])
+    # 调整列宽
+    for col_idx, h in enumerate(headers, 1):
+        ws.column_dimensions[chr(64 + col_idx)].width = 14
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=import_template.xlsx"},
+    )
+
+
+@router.post("/import")
+async def import_records(
+    file: UploadFile = File(...),
+    db: psycopg.AsyncConnection = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """从 Excel 导入记录"""
+    from openpyxl import load_workbook
+
+    if not file.filename.endswith((".xlsx", ".xls")):
+        return {"error": "请上传 .xlsx 格式的文件"}
+
+    content = await file.read()
+    wb = load_workbook(io.BytesIO(content), read_only=True)
+    ws = wb.active
+
+    rows = list(ws.iter_rows(min_row=2, values_only=True))
+    if not rows:
+        return {"error": "表格中没有数据"}
+
+    user_id = current_user["id"]
+    imported = 0
+    skipped = 0
+    errors = []
+
+    for idx, row in enumerate(rows, start=2):
+        try:
+            # 客户、商品、成本价、售价、其他收入、实际利润、快递单号、快递公司、是否回款、下单时间、备注
+            customer = str(row[0] or "").strip()
+            product = str(row[1] or "").strip()
+            cost_price = float(row[2] or 0)
+            buy_price = float(row[3] or 0)
+            other_income = float(row[4] or 0)
+            actual_profit = float(row[5] or 0)
+            tracking_no = str(row[6] or "").strip()
+            tracking_company = str(row[7] or "").strip()
+            is_returned = 1 if str(row[8] or "").strip() in ("是", "1", "yes", "true") else 0
+            created_at = str(row[9] or "").strip() if row[9] else None
+            note = str(row[10] or "").strip() if len(row) > 10 else ""
+
+            if not customer and not product:
+                skipped += 1
+                continue
+
+            profit = buy_price - cost_price + other_income
+
+            await db.execute(
+                """INSERT INTO records
+                   (customer, product, cost_price, buy_price, other_income, profit,
+                    actual_profit, tracking_no, tracking_company, is_returned, note, user_id, created_at)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (customer, product, cost_price, buy_price, other_income, profit,
+                 actual_profit, tracking_no, tracking_company, is_returned, note, user_id,
+                 created_at),
+            )
+            imported += 1
+        except Exception as e:
+            errors.append(f"第{idx}行: {str(e)}")
+            skipped += 1
+
+    await db.commit()
+    wb.close()
+
+    return {
+        "data": {
+            "imported": imported,
+            "skipped": skipped,
+            "errors": errors[:10],  # 最多返回10条错误
+            "message": f"成功导入 {imported} 条记录" + (f"，跳过 {skipped} 条" if skipped else ""),
+        }
+    }
