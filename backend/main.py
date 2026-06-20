@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from database import init_pool, close_pool, get_db
 from auth import ensure_admin
 from routers import records, stats, tracking, auth, admin
+from services.scheduler import start_scheduler, stop_scheduler
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
@@ -23,7 +24,9 @@ async def lifespan(app):
     await init_pool()
     async for db in get_db():
         await ensure_admin(db)
+    await start_scheduler()
     yield
+    await stop_scheduler()
     await close_pool()
 
 

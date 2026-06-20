@@ -85,6 +85,18 @@ async def _init_db():
             "CREATE INDEX IF NOT EXISTS idx_records_user_id ON records(user_id)"
         )
 
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS site_config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT ''
+            )
+        """)
+
+        await db.execute("""
+            INSERT INTO site_config (key, value) VALUES ('tracking_cron', '0 */3 * * *')
+            ON CONFLICT (key) DO NOTHING
+        """)
+
         await db.commit()
 
 
