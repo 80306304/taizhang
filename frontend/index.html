@@ -349,7 +349,7 @@
         .table-scroll::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
         .table-scroll::-webkit-scrollbar-track { background: transparent; }
 
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
         th {
             background: rgba(99, 102, 241, 0.06);
@@ -366,6 +366,37 @@
             top: 0;
             z-index: 2;
             backdrop-filter: blur(12px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* === Column Resizer === */
+        .col-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            z-index: 3;
+            user-select: none;
+        }
+
+        .col-resizer::after {
+            content: '';
+            position: absolute;
+            right: 2px;
+            top: 25%;
+            bottom: 25%;
+            width: 2px;
+            border-radius: 1px;
+            background: transparent;
+            transition: background 0.15s;
+        }
+
+        .col-resizer:hover::after,
+        .col-resizer.active::after {
+            background: var(--primary-light);
         }
 
         td {
@@ -373,6 +404,8 @@
             font-size: 13px;
             border-bottom: 1px solid rgba(241, 245, 249, 0.8);
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         tr { transition: background 0.15s; }
@@ -804,6 +837,31 @@
             font-size: 13px;
         }
 
+        /* === Dashboard Top Filter Bar === */
+        .dashboard-filter-bar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-filter-bar .time-filter {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .dashboard-filter-bar .custom-date-row {
+            margin-top: 0;
+            width: 100%;
+        }
+
         /* === Auth Page === */
         #auth-page {
             display: none;
@@ -1033,7 +1091,8 @@
             .smart-input-row .btn { width: 100%; }
 
             .section-header { flex-direction: column; align-items: flex-start; }
-            .time-filter { width: 100%; }
+            .dashboard-filter-bar { flex-direction: column; align-items: stretch; padding: 12px 14px; }
+            .dashboard-filter-bar .time-filter { width: 100%; }
             .period-btn { flex: 1; text-align: center; padding: 8px 10px; }
             .custom-date-row { width: 100%; }
             .custom-date-row input[type="date"] { flex: 1; }
@@ -1046,6 +1105,9 @@
 
             /* Hide less important columns on tablet */
             th.mobile-hide, td.mobile-hide { display: none; }
+
+            /* Switch to auto layout so hidden columns don't leave empty space */
+            table { table-layout: auto; }
 
             /* Auth page tablet */
             .auth-card { max-width: 380px; }
@@ -1080,6 +1142,7 @@
             .btn { padding: 10px 16px; font-size: 13px; }
             .toolbar .btn { width: 100%; }
 
+            .dashboard-filter-bar { padding: 10px 12px; gap: 8px; }
             .period-btn { padding: 7px 8px; font-size: 12px; }
             .custom-date-row input[type="date"] { font-size: 12px; padding: 6px 8px; }
 
@@ -1232,6 +1295,22 @@
 
     <!-- ========== Dashboard Page ========== -->
     <div id="page-dashboard" class="page active">
+        <!-- Time Filter Bar (at the top) -->
+        <div class="dashboard-filter-bar">
+            <div class="time-filter">
+                <span class="period-btn active" data-period="all" onclick="setTimePeriod('all')">全部</span>
+                <span class="period-btn" data-period="month" onclick="setTimePeriod('month')">本月</span>
+                <span class="period-btn" data-period="quarter" onclick="setTimePeriod('quarter')">本季</span>
+                <span class="period-btn" data-period="year" onclick="setTimePeriod('year')">本年</span>
+                <span class="period-btn" data-period="custom" onclick="setTimePeriod('custom')">自定义</span>
+            </div>
+            <div class="custom-date-row" id="custom-date-row">
+                <input type="date" id="date-from" onchange="applyCustomDate()">
+                <span class="date-sep">至</span>
+                <input type="date" id="date-to" onchange="applyCustomDate()">
+            </div>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">📦</div>
@@ -1285,23 +1364,23 @@
         <div class="dashboard-section">
             <div class="section-header">
                 <div class="section-title">📋 最近记录</div>
-                <div class="time-filter">
-                    <span class="period-btn active" data-period="all" onclick="setTimePeriod('all')">全部</span>
-                    <span class="period-btn" data-period="month" onclick="setTimePeriod('month')">本月</span>
-                    <span class="period-btn" data-period="quarter" onclick="setTimePeriod('quarter')">本季</span>
-                    <span class="period-btn" data-period="year" onclick="setTimePeriod('year')">本年</span>
-                    <span class="period-btn" data-period="custom" onclick="setTimePeriod('custom')">自定义</span>
-                </div>
-            </div>
-            <div class="custom-date-row" id="custom-date-row">
-                <input type="date" id="date-from" onchange="applyCustomDate()">
-                <span class="date-sep">至</span>
-                <input type="date" id="date-to" onchange="applyCustomDate()">
             </div>
         </div>
         <div class="table-wrapper">
             <div class="table-scroll">
                 <table>
+                    <colgroup>
+                        <col style="width:50px">
+                        <col style="width:80px">
+                        <col style="width:80px">
+                        <col style="width:70px">
+                        <col style="width:70px">
+                        <col style="width:70px">
+                        <col style="width:90px">
+                        <col style="width:80px">
+                        <col style="width:130px">
+                        <col style="width:130px">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th class="mobile-hide">ID</th>
@@ -1360,6 +1439,22 @@
         <div class="table-wrapper">
             <div class="table-scroll">
                 <table>
+                    <colgroup>
+                        <col style="width:50px">
+                        <col style="width:80px">
+                        <col style="width:80px">
+                        <col style="width:70px">
+                        <col style="width:70px">
+                        <col style="width:65px">
+                        <col style="width:70px">
+                        <col style="width:180px">
+                        <col style="width:100px">
+                        <col style="width:75px">
+                        <col style="width:120px">
+                        <col style="width:130px">
+                        <col style="width:130px">
+                        <col style="width:120px">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th class="mobile-hide">ID</th>
@@ -1391,17 +1486,40 @@
     <div id="page-tracking" class="page">
         <div class="tracking-card">
             <h3 style="margin-bottom:16px;font-size:16px">🚚 快递查询</h3>
-            <div class="tracking-query-row" style="display:flex;gap:12px;margin-bottom:16px">
-                <select class="select" id="tracking-company" style="max-width:180px;flex-shrink:0">
-                    <option value="">选择快递公司</option>
-                </select>
-                <input type="text" class="input" id="tracking-no" placeholder="输入快递单号" style="flex:1">
-                <button class="btn btn-primary" onclick="queryTracking()">查询</button>
+            <!-- 按记录ID查询 -->
+            <div style="display:flex;gap:12px;margin-bottom:16px">
+                <input type="text" class="input" id="tracking-record-id" placeholder="输入记录ID查询该记录的物流详情" style="flex:1">
+                <button class="btn btn-outline" onclick="queryTrackingByRecord()">按记录查询</button>
+            </div>
+            <div style="border-top:1px solid var(--gray-100);padding-top:16px;margin-bottom:12px">
+                <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px">或手动选择快递公司查询：</p>
+                <div class="tracking-query-row" style="display:flex;gap:12px">
+                    <select class="select" id="tracking-company" style="max-width:180px;flex-shrink:0">
+                        <option value="">选择快递公司</option>
+                    </select>
+                    <input type="text" class="input" id="tracking-no" placeholder="输入快递单号" style="flex:1">
+                    <button class="btn btn-primary" onclick="queryTracking()">查询</button>
+                </div>
             </div>
             <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px">
                 💡 提示：也可以在记录列表中点击「🚚 同步物流」批量更新所有记录的物流状态
             </p>
             <div id="tracking-result"></div>
+        </div>
+        <!-- 定时查询设置 -->
+        <div class="tracking-card" style="margin-top:20px">
+            <h3 style="margin-bottom:12px;font-size:15px">⏰ 定时查询设置</h3>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px">
+                自动查询所有未签收状态的物流订单（格式错误的单号将自动跳过）
+            </p>
+            <div style="display:flex;gap:12px;align-items:center">
+                <label style="font-size:13px;font-weight:600;white-space:nowrap">Cron 表达式：</label>
+                <input type="text" class="input" id="cron-input" placeholder="0 */3 * * *" style="flex:1">
+                <button class="btn btn-primary" onclick="saveCron()">保存</button>
+            </div>
+            <p style="font-size:11px;color:var(--gray-400);margin-top:8px">
+                格式：分 时 日 月 周 &nbsp; 例：<code>0 */3 * * *</code> = 每3小时，<code>0 9 * * *</code> = 每天9点，<code>*/30 * * * *</code> = 每30分钟
+            </p>
         </div>
     </div>
 
@@ -1459,6 +1577,21 @@
                 </div>
             </div>
             <div id="codes-pagination" class="pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== Tracking Detail Modal ========== -->
+<div id="tracking-detail-modal" class="modal-overlay">
+    <div class="modal" style="max-width:600px">
+        <div class="modal-header">
+            <h2>📦 物流详情</h2>
+            <button class="modal-close" onclick="closeModal('tracking-detail-modal')">&times;</button>
+        </div>
+        <div class="modal-body" id="tracking-detail-body">
+            <div style="text-align:center;color:var(--gray-400);padding:40px 0">
+                <span class="spinner"></span> 查询中...
+            </div>
         </div>
     </div>
 </div>
@@ -1813,6 +1946,54 @@ function applyCustomDate() {
     }
 }
 
+// ========== Column Resizer ==========
+function initColumnResizers(tableEl) {
+    if (!tableEl) return;
+    const ths = tableEl.querySelectorAll('thead th');
+    const cols = tableEl.querySelectorAll('colgroup col');
+
+    ths.forEach((th, idx) => {
+        if (th.querySelector('.col-resizer')) return;
+
+        const resizer = document.createElement('div');
+        resizer.className = 'col-resizer';
+        th.appendChild(resizer);
+
+        function startResize(clientX) {
+            const startX = clientX;
+            const startWidth = cols[idx] ? parseInt(cols[idx].style.width, 10) : th.offsetWidth;
+            resizer.classList.add('active');
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'col-resize';
+
+            function onMove(e) {
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const delta = x - startX;
+                const newWidth = Math.max(40, startWidth + delta);
+                if (cols[idx]) cols[idx].style.width = newWidth + 'px';
+            }
+
+            function onEnd() {
+                resizer.classList.remove('active');
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+        }
+
+        resizer.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); startResize(e.clientX); });
+        resizer.addEventListener('touchstart', (e) => { e.stopPropagation(); startResize(e.touches[0].clientX); }, { passive: true });
+    });
+}
+
 // ========== Navigation ==========
 function switchPage(page) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1822,7 +2003,7 @@ function switchPage(page) {
 
     if (page === 'dashboard') loadDashboard();
     if (page === 'records') loadRecords();
-    if (page === 'tracking') loadCompanies();
+    if (page === 'tracking') { loadCompanies(); loadCronSetting(); }
     if (page === 'admin') loadAdminPage();
 }
 
@@ -1905,6 +2086,7 @@ async function loadDashboard() {
 
         const records = recordsRes.data.slice(0, 10);
         renderDashboardTable(records);
+        initColumnResizers(document.querySelector('#page-dashboard table'));
     } catch (e) {
         console.error('Dashboard load error:', e);
     }
@@ -1950,6 +2132,7 @@ async function loadRecords(page) {
         allRecords = res.data;
         renderRecordsTable(allRecords);
         renderPagination('records-pagination', res.total, res.page, res.page_size, loadRecords);
+        initColumnResizers(document.querySelector('#page-records table'));
     } catch (e) {
         console.error('Records load error:', e);
     }
@@ -1970,10 +2153,10 @@ function renderRecordsTable(records) {
             <td>${formatMoney(r.buy_price)}</td>
             <td class="mobile-hide">${formatMoney(r.other_income)}</td>
             <td class="profit-cell ${profitClass(r.profit)}">${formatMoney(r.profit)}</td>
-            <td style="font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${r.tracking_no || ''}">${r.tracking_no || '-'}</td>
+            <td style="font-size:12px">${r.tracking_no ? `<a href="javascript:void(0)" onclick="showTrackingDetail(${r.id})" style="color:var(--primary);text-decoration:underline;cursor:pointer" title="点击查看物流">${r.tracking_no}</a>` : '-'}</td>
             <td>${trackingBadge(r.tracking_state, r.tracking_state_text)}</td>
             <td>${r.is_returned ? '<span class="badge badge-success">已回款</span>' : '<span class="badge badge-warning">未回款</span>'}</td>
-            <td class="mobile-hide" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${r.note || ''}">${r.note || '-'}</td>
+            <td class="mobile-hide" style="overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${r.note || ''}">${r.note || '-'}</td>
             <td style="color:var(--gray-400);font-size:12px">${r.created_at || '-'}</td>
             <td class="mobile-hide" style="color:var(--gray-400);font-size:12px">${r.returned_at || '-'}</td>
             <td>
@@ -2209,6 +2392,33 @@ async function syncTracking() {
     }
 }
 
+// ========== Tracking Detail Modal ==========
+async function showTrackingDetail(recordId) {
+    openModal('tracking-detail-modal');
+    const body = document.getElementById('tracking-detail-body');
+    body.innerHTML = '<div style="text-align:center;color:var(--gray-400);padding:40px 0"><span class="spinner"></span> 查询中...</div>';
+    try {
+        const res = await api(`/api/tracking/status/${recordId}`);
+        const d = res.data;
+        if (d.error) {
+            body.innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">
+                <p style="font-size:15px;font-weight:600">❌ ${d.error}</p>
+            </div>`;
+            return;
+        }
+        if (!d.success) {
+            body.innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">
+                <p style="font-size:15px;font-weight:600">${d.message || '查询失败'}</p>
+                <p style="font-size:13px;color:var(--gray-400);margin-top:8px">${d.state_text || ''}</p>
+            </div>`;
+            return;
+        }
+        body.innerHTML = renderTrackingResult(d);
+    } catch (e) {
+        body.innerHTML = '<p style="color:var(--danger);text-align:center;padding:20px">查询失败，请重试</p>';
+    }
+}
+
 // ========== Tracking Page ==========
 async function loadCompanies() {
     try {
@@ -2222,6 +2432,29 @@ async function loadCompanies() {
             select.appendChild(opt);
         });
     } catch (e) {}
+}
+
+function renderTrackingResult(d) {
+    let html = `
+        <div class="tracking-card" style="border-left:3px solid var(--primary)">
+            <h4 style="margin-bottom:10px;font-size:15px">${d.company} · ${d.tracking_no}</h4>
+            <p style="margin-bottom:4px;font-size:13px"><strong>状态：</strong>${trackingBadge(d.state, d.state_text)}</p>
+            <p style="margin-bottom:16px;font-size:13px;color:var(--gray-500)"><strong>最新：</strong>${d.latest_time} — ${d.latest_context}</p>
+    `;
+    if (d.history && d.history.length) {
+        html += '<div class="tracking-timeline">';
+        d.history.forEach(item => {
+            html += `
+                <div class="timeline-item">
+                    <div class="timeline-time">${item.time}</div>
+                    <div class="timeline-text">${item.context}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+    html += '</div>';
+    return html;
 }
 
 async function queryTracking() {
@@ -2241,30 +2474,56 @@ async function queryTracking() {
             return;
         }
 
-        let html = `
-            <div class="tracking-card" style="border-left:3px solid var(--primary)">
-                <h4 style="margin-bottom:10px;font-size:15px">${d.company} · ${d.tracking_no}</h4>
-                <p style="margin-bottom:4px;font-size:13px"><strong>状态：</strong>${trackingBadge(d.state, d.state_text)}</p>
-                <p style="margin-bottom:16px;font-size:13px;color:var(--gray-500)"><strong>最新：</strong>${d.latest_time} — ${d.latest_context}</p>
-        `;
-
-        if (d.history && d.history.length) {
-            html += '<div class="tracking-timeline">';
-            d.history.forEach(item => {
-                html += `
-                    <div class="timeline-item">
-                        <div class="timeline-time">${item.time}</div>
-                        <div class="timeline-text">${item.context}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-        }
-
-        html += '</div>';
-        resultDiv.innerHTML = html;
+        resultDiv.innerHTML = renderTrackingResult(d);
     } catch (e) {
         resultDiv.innerHTML = '<p style="color:var(--danger)">查询失败</p>';
+    }
+}
+
+async function queryTrackingByRecord() {
+    const recordId = document.getElementById('tracking-record-id').value.trim();
+    if (!recordId) { showToast('请输入记录ID', 'error'); return; }
+
+    const resultDiv = document.getElementById('tracking-result');
+    resultDiv.innerHTML = '<p style="color:var(--gray-400)">查询中...</p>';
+
+    try {
+        const res = await api(`/api/tracking/status/${recordId}`);
+        const d = res.data;
+        if (d.error) {
+            resultDiv.innerHTML = `<div class="tracking-card" style="border-left:3px solid var(--danger)"><p style="color:var(--danger);font-weight:600">${d.error}</p></div>`;
+            return;
+        }
+        if (!d.success) {
+            resultDiv.innerHTML = `<div class="tracking-card" style="border-left:3px solid var(--danger)"><p style="color:var(--danger);font-weight:600">${d.message || '查询失败'}</p><p style="color:var(--gray-400);font-size:13px">${d.state_text || ''}</p></div>`;
+            return;
+        }
+        resultDiv.innerHTML = renderTrackingResult(d);
+    } catch (e) {
+        resultDiv.innerHTML = '<p style="color:var(--danger)">查询失败</p>';
+    }
+}
+
+// ========== Cron Settings ==========
+async function loadCronSetting() {
+    try {
+        const res = await api('/api/tracking/cron');
+        document.getElementById('cron-input').value = res.data.cron || '';
+    } catch (e) {}
+}
+
+async function saveCron() {
+    const cron = document.getElementById('cron-input').value.trim();
+    if (!cron) { showToast('请输入cron表达式', 'error'); return; }
+    try {
+        const res = await api('/api/tracking/cron', {
+            method: 'PUT',
+            body: JSON.stringify({ cron }),
+        });
+        if (res.error) { showToast(res.error, 'error'); return; }
+        showToast(res.data?.message || '定时任务已更新', 'success');
+    } catch (e) {
+        showToast('保存失败', 'error');
     }
 }
 
