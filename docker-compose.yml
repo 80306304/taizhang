@@ -1,0 +1,7 @@
+services:
+  app:
+    image: taizhang
+    container_name: taizhang
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
