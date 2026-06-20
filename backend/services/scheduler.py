@@ -2,6 +2,7 @@
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from psycopg.rows import dict_row
 
 logger = logging.getLogger("scheduler")
 scheduler = AsyncIOScheduler()
@@ -28,6 +29,7 @@ async def auto_sync_job():
         return
 
     async with pool.connection() as db:
+        db.row_factory = dict_row
         cursor = await db.execute(
             "SELECT id, tracking_no, tracking_company FROM records "
             "WHERE tracking_no != '' AND (tracking_state IS NULL OR tracking_state != '3')"
@@ -116,11 +118,12 @@ async def refresh_schedule(cron_expr: str = None):
         if not pool:
             return
         async with pool.connection() as db:
+            db.row_factory = dict_row
             cursor = await db.execute(
                 "SELECT value FROM site_config WHERE key='tracking_cron'"
             )
             row = await cursor.fetchone()
-            cron_expr = dict(row)["value"] if row else "0 */3 * * *"
+            cron_expr = row["value"] if row else "0 */3 * * *"
 
     try:
         kwargs = _parse_cron_expr(cron_expr)
