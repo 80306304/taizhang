@@ -339,12 +339,20 @@
             overflow: hidden;
         }
 
-        .table-scroll { overflow-x: auto; }
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+        .table-scroll::-webkit-scrollbar-track { background: transparent; }
 
         table { width: 100%; border-collapse: collapse; }
 
         th {
-            background: rgba(99, 102, 241, 0.04);
+            background: rgba(99, 102, 241, 0.06);
             padding: 12px 14px;
             text-align: left;
             font-size: 12px;
@@ -354,6 +362,10 @@
             letter-spacing: 0.5px;
             border-bottom: 1.5px solid var(--gray-100);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            backdrop-filter: blur(12px);
         }
 
         td {
@@ -367,6 +379,90 @@
         tr:nth-child(even) { background: rgba(241, 245, 249, 0.4); }
         tr:hover { background: rgba(99, 102, 241, 0.04); }
         tr:last-child td { border-bottom: none; }
+
+        /* === Pagination === */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid var(--gray-100);
+            font-size: 13px;
+            color: var(--gray-500);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-info { font-weight: 500; }
+
+        .pagination-btns {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .page-btn {
+            min-width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--gray-600);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 0 8px;
+        }
+
+        .page-btn:hover:not(:disabled):not(.active) {
+            border-color: var(--primary-light);
+            color: var(--primary);
+            background: white;
+        }
+
+        .page-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-ellipsis {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+
+        .pagination-size {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pagination-size select {
+            padding: 5px 8px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--gray-600);
+            background: rgba(255, 255, 255, 0.7);
+            outline: none;
+            cursor: pointer;
+        }
 
         /* === Badges === */
         .badge {
@@ -1288,6 +1384,7 @@
                 </table>
             </div>
         </div>
+        <div id="records-pagination" class="pagination"></div>
     </div>
 
     <!-- ========== Tracking Page ========== -->
@@ -1332,6 +1429,7 @@
                     </table>
                 </div>
             </div>
+            <div id="users-pagination" class="pagination"></div>
         </div>
 
         <div class="admin-section">
@@ -1360,6 +1458,7 @@
                     </table>
                 </div>
             </div>
+            <div id="codes-pagination" class="pagination"></div>
         </div>
     </div>
 </div>
@@ -1595,10 +1694,54 @@ async function checkAuth() {
 let currentFilter = 'all';
 let searchTimer = null;
 let allRecords = [];
+let recordsPage = 1;
+let usersPage = 1;
+let codesPage = 1;
+const PAGE_SIZE = 20;
 
 // 获取当前上海时间的 datetime-local 值
 function nowShanghai() {
     return new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).replace(' ', 'T').substring(0, 16);
+}
+
+// ========== Pagination ==========
+function renderPagination(containerId, total, page, pageSize, loadFn) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (total <= pageSize) { el.innerHTML = ''; return; }
+
+    const totalPages = Math.ceil(total / pageSize);
+    const start = (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, total);
+
+    let btns = '';
+    // 上一页
+    btns += `<button class="page-btn" ${page <= 1 ? 'disabled' : ''} onclick="${loadFn.name}(${page - 1})">‹</button>`;
+
+    // 页码
+    const range = [];
+    if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) range.push(i);
+    } else {
+        range.push(1);
+        if (page > 3) range.push('...');
+        for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) range.push(i);
+        if (page < totalPages - 2) range.push('...');
+        range.push(totalPages);
+    }
+
+    for (const p of range) {
+        if (p === '...') {
+            btns += '<span class="page-ellipsis">…</span>';
+        } else {
+            btns += `<button class="page-btn ${p === page ? 'active' : ''}" onclick="${loadFn.name}(${p})">${p}</button>`;
+        }
+    }
+
+    // 下一页
+    btns += `<button class="page-btn" ${page >= totalPages ? 'disabled' : ''} onclick="${loadFn.name}(${page + 1})">›</button>`;
+
+    el.innerHTML = `<span class="pagination-info">共 ${total} 条，第 ${start}-${end} 条</span><div class="pagination-btns">${btns}</div>`;
 }
 let currentTimePeriod = 'all';
 let customDateFrom = '';
@@ -1795,16 +1938,18 @@ function profitClass(v) {
 }
 
 // ========== Records ==========
-async function loadRecords() {
+async function loadRecords(page) {
+    recordsPage = page || 1;
     try {
         const search = document.getElementById('search-input').value.trim();
-        let url = '/api/records?';
-        if (search) url += `search=${encodeURIComponent(search)}&`;
-        if (currentFilter !== 'all') url += `is_returned=${currentFilter}&`;
+        let url = `/api/records?page=${recordsPage}&page_size=${PAGE_SIZE}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (currentFilter !== 'all') url += `&is_returned=${currentFilter}`;
 
         const res = await api(url);
         allRecords = res.data;
         renderRecordsTable(allRecords);
+        renderPagination('records-pagination', res.total, res.page, res.page_size, loadRecords);
     } catch (e) {
         console.error('Records load error:', e);
     }
@@ -2128,12 +2273,14 @@ async function loadAdminPage() {
     await Promise.all([loadUsers(), loadInviteCodes()]);
 }
 
-async function loadUsers() {
+async function loadUsers(page) {
+    usersPage = page || 1;
     try {
-        const res = await api('/api/admin/users');
+        const res = await api(`/api/admin/users?page=${usersPage}&page_size=${PAGE_SIZE}`);
         const tbody = document.getElementById('users-table-body');
         if (!res.data.length) {
             tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>暂无用户</p></div></td></tr>';
+            document.getElementById('users-pagination').innerHTML = '';
             return;
         }
         tbody.innerHTML = res.data.map(u => `
@@ -2155,15 +2302,18 @@ async function loadUsers() {
                 </td>
             </tr>
         `).join('');
+        renderPagination('users-pagination', res.total, res.page, res.page_size, loadUsers);
     } catch (e) {}
 }
 
-async function loadInviteCodes() {
+async function loadInviteCodes(page) {
+    codesPage = page || 1;
     try {
-        const res = await api('/api/admin/invite-codes');
+        const res = await api(`/api/admin/invite-codes?page=${codesPage}&page_size=${PAGE_SIZE}`);
         const tbody = document.getElementById('codes-table-body');
         if (!res.data.length) {
             tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>暂无注册码，点击上方按钮生成</p></div></td></tr>';
+            document.getElementById('codes-pagination').innerHTML = '';
             return;
         }
         tbody.innerHTML = res.data.map(c => `
@@ -2183,6 +2333,7 @@ async function loadInviteCodes() {
                 </td>
             </tr>
         `).join('');
+        renderPagination('codes-pagination', res.total, res.page, res.page_size, loadInviteCodes);
     } catch (e) {}
 }
 

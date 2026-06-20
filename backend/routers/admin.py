@@ -1,5 +1,5 @@
 """管理接口：用户管理、注册码管理（仅 admin）"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 import psycopg
@@ -13,15 +13,23 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 # ===== 用户管理 =====
 @router.get("/users")
 async def list_users(
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页条数"),
     admin: dict = Depends(get_current_admin),
     db: psycopg.AsyncConnection = Depends(get_db),
 ):
-    """列出所有用户"""
+    """列出所有用户（分页）"""
+    cursor = await db.execute("SELECT COUNT(*) as cnt FROM users")
+    row = await cursor.fetchone()
+    total = row["cnt"] if isinstance(row, dict) else row[0]
+
+    offset = (page - 1) * page_size
     cursor = await db.execute(
-        "SELECT id, username, role, created_at FROM users ORDER BY id"
+        "SELECT id, username, role, created_at FROM users ORDER BY id LIMIT %s OFFSET %s",
+        (page_size, offset),
     )
     rows = await cursor.fetchall()
-    return {"data": [dict(r) for r in rows]}
+    return {"data": [dict(r) for r in rows], "total": total, "page": page, "page_size": page_size}
 
 
 @router.delete("/users/{user_id}")
@@ -62,19 +70,27 @@ async def update_user_role(
 # ===== 注册码管理 =====
 @router.get("/invite-codes")
 async def list_invite_codes(
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页条数"),
     admin: dict = Depends(get_current_admin),
     db: psycopg.AsyncConnection = Depends(get_db),
 ):
-    """列出所有注册码"""
+    """列出所有注册码（分页）"""
+    cursor = await db.execute("SELECT COUNT(*) as cnt FROM invite_codes")
+    row = await cursor.fetchone()
+    total = row["cnt"] if isinstance(row, dict) else row[0]
+
+    offset = (page - 1) * page_size
     cursor = await db.execute(
         """SELECT ic.*, u1.username AS creator_name, u2.username AS used_by_name
            FROM invite_codes ic
            LEFT JOIN users u1 ON ic.created_by = u1.id
            LEFT JOIN users u2 ON ic.used_by = u2.id
-           ORDER BY ic.id DESC"""
+           ORDER BY ic.id DESC LIMIT %s OFFSET %s""",
+        (page_size, offset),
     )
     rows = await cursor.fetchall()
-    return {"data": [dict(r) for r in rows]}
+    return {"data": [dict(r) for r in rows], "total": total, "page": page, "page_size": page_size}
 
 
 @router.post("/invite-codes")

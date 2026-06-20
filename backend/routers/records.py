@@ -16,42 +16,53 @@ async def list_records(
     is_returned: Optional[int] = Query(None, description="回款状态筛选"),
     date_from: Optional[str] = Query(None, description="开始日期 YYYY-MM-DD"),
     date_to: Optional[str] = Query(None, description="结束日期 YYYY-MM-DD"),
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页条数"),
     db: psycopg.AsyncConnection = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """获取记录列表"""
+    """获取记录列表（分页）"""
     user_id = current_user["id"]
     is_admin = current_user["role"] == "admin"
 
-    query = "SELECT * FROM records WHERE 1=1"
+    where = " WHERE 1=1"
     params = []
 
     # 非管理员只能看自己的记录
     if not is_admin:
-        query += " AND user_id = %s"
+        where += " AND user_id = %s"
         params.append(user_id)
 
     if search:
-        query += " AND (customer LIKE %s OR product LIKE %s OR tracking_no LIKE %s OR note LIKE %s)"
+        where += " AND (customer LIKE %s OR product LIKE %s OR tracking_no LIKE %s OR note LIKE %s)"
         like = f"%{search}%"
         params.extend([like, like, like, like])
 
     if is_returned is not None:
-        query += " AND is_returned = %s"
+        where += " AND is_returned = %s"
         params.append(is_returned)
 
     if date_from:
-        query += " AND created_at >= %s"
+        where += " AND created_at >= %s"
         params.append(date_from)
 
     if date_to:
-        query += " AND created_at <= %s"
+        where += " AND created_at <= %s"
         params.append(date_to + " 23:59:59")
 
-    query += " ORDER BY created_at DESC"
-    cursor = await db.execute(query, params)
+    # 查询总数
+    cursor = await db.execute(f"SELECT COUNT(*) as cnt FROM records{where}", params)
+    row = await cursor.fetchone()
+    total = row["cnt"] if isinstance(row, dict) else row[0]
+
+    # 分页查询
+    offset = (page - 1) * page_size
+    cursor = await db.execute(
+        f"SELECT * FROM records{where} ORDER BY created_at DESC LIMIT %s OFFSET %s",
+        params + [page_size, offset],
+    )
     rows = await cursor.fetchall()
-    return {"data": [dict(row) for row in rows]}
+    return {"data": [dict(row) for row in rows], "total": total, "page": page, "page_size": page_size}
 
 
 @router.post("")
