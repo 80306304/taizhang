@@ -340,9 +340,7 @@
 
         .table-scroll {
             overflow-x: auto;
-            max-height: 600px;
-            min-height: 120px;
-            overflow-y: auto;
+            overflow-y: visible;
         }
 
         .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -661,57 +659,91 @@
         .drop-zone {
             border: 2px dashed var(--gray-300);
             border-radius: var(--radius);
-            padding: 32px 20px;
+            padding: 40px 20px;
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
-            background: rgba(99, 102, 241, 0.02);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(139, 92, 246, 0.03));
             position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 2px dashed transparent;
+            border-radius: 12px;
+            transition: border-color 0.3s;
+            pointer-events: none;
         }
 
         .drop-zone:hover {
             border-color: var(--primary-light);
-            background: rgba(99, 102, 241, 0.05);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
+        }
+
+        .drop-zone:hover::before {
+            border-color: rgba(99, 102, 241, 0.1);
         }
 
         .drop-zone.drag-over {
             border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 8px 24px rgba(99, 102, 241, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone.drag-over::before {
+            border-color: rgba(99, 102, 241, 0.2);
         }
 
         .drop-zone .dz-icon {
-            font-size: 36px;
-            margin-bottom: 10px;
+            font-size: 44px;
+            margin-bottom: 12px;
             display: block;
-            opacity: 0.7;
+            transition: transform 0.3s;
         }
 
+        .drop-zone:hover .dz-icon { transform: scale(1.1); }
+        .drop-zone.drag-over .dz-icon { transform: scale(1.15) translateY(-4px); }
+
         .drop-zone .dz-text {
-            font-size: 14px;
-            color: var(--gray-500);
-            font-weight: 500;
+            font-size: 15px;
+            color: var(--gray-600);
+            font-weight: 600;
+        }
+
+        .drop-zone .dz-text span {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 2px;
         }
 
         .drop-zone .dz-hint {
             font-size: 12px;
             color: var(--gray-400);
-            margin-top: 6px;
+            margin-top: 8px;
         }
 
         .drop-zone .dz-filename {
             font-size: 13px;
-            color: var(--primary);
+            color: var(--success);
             font-weight: 600;
-            margin-top: 8px;
+            margin-top: 10px;
             display: none;
         }
 
         .drop-zone.has-file {
             border-color: var(--success);
-            background: rgba(16, 185, 129, 0.05);
+            border-style: solid;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.04), rgba(16, 185, 129, 0.08));
         }
 
+        .drop-zone.has-file .dz-icon { opacity: 0.6; }
+        .drop-zone.has-file .dz-text { color: var(--success); }
         .drop-zone.has-file .dz-filename { display: block; }
 
         /* === Toast === */
@@ -1912,7 +1944,7 @@
 
 <!-- Import Modal -->
 <div class="modal-overlay" id="import-modal">
-    <div class="modal" style="max-width:480px">
+    <div class="modal" style="max-width:500px">
         <div class="modal-header">
             <h3>📥 导入 Excel</h3>
             <button class="modal-close" onclick="closeModal('import-modal')">&times;</button>
@@ -1920,9 +1952,9 @@
         <div class="modal-body">
             <button class="btn btn-outline" onclick="downloadTemplate()" style="margin-bottom:20px;width:100%">📄 下载导入模板</button>
             <div class="drop-zone" id="drop-zone" onclick="document.getElementById('import-file').click()">
-                <span class="dz-icon">📁</span>
-                <div class="dz-text">拖拽文件到此处，或点击选择</div>
-                <div class="dz-hint">支持 .xlsx 格式</div>
+                <span class="dz-icon">📂</span>
+                <div class="dz-text">拖拽文件到这里，或 <span>点击选择文件</span></div>
+                <div class="dz-hint">仅支持 .xlsx 格式</div>
                 <div class="dz-filename" id="dz-filename"></div>
             </div>
             <input type="file" id="import-file" accept=".xlsx" style="display:none">
@@ -2066,6 +2098,24 @@ function nowShanghai() {
 }
 
 // ========== Pagination ==========
+function adjustTableScroll(wrapperEl) {
+    if (!wrapperEl) return;
+    const scroll = wrapperEl.querySelector('.table-scroll');
+    if (!scroll) return;
+    const rows = scroll.querySelectorAll('tbody tr');
+    if (rows.length > 10) {
+        // 超过 10 行：固定高度，启用滚动
+        const headerH = scroll.querySelector('thead')?.offsetHeight || 46;
+        const rowH = rows[0]?.offsetHeight || 47;
+        scroll.style.maxHeight = (headerH + rowH * 10 + 4) + 'px';
+        scroll.style.overflowY = 'auto';
+    } else {
+        // 10 行以内：自然撑高，无滚动条
+        scroll.style.maxHeight = 'none';
+        scroll.style.overflowY = 'visible';
+    }
+}
+
 function renderPagination(containerId, total, page, pageSize, loadFn) {
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -2331,6 +2381,7 @@ async function loadDashboard(page) {
         const records = recordsRes.data;
         renderDashboardTable(records);
         renderPagination('dashboard-pagination', recordsRes.total, recordsRes.page, recordsRes.page_size, loadDashboard);
+        adjustTableScroll(document.querySelector('#page-dashboard .table-wrapper'));
         initColumnResizers(document.querySelector('#page-dashboard table'));
     } catch (e) {
         console.error('Dashboard load error:', e);
@@ -2377,6 +2428,7 @@ async function loadRecords(page) {
         allRecords = res.data;
         renderRecordsTable(allRecords);
         renderPagination('records-pagination', res.total, res.page, res.page_size, loadRecords);
+        adjustTableScroll(document.querySelector('#page-records .table-wrapper'));
         initColumnResizers(document.querySelector('#page-records table'));
     } catch (e) {
         console.error('Records load error:', e);
