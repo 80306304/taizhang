@@ -341,6 +341,7 @@
         .table-scroll {
             overflow-x: auto;
             overflow-y: auto;
+            max-height: 640px;
         }
 
         .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -655,137 +656,77 @@
         .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
         .empty-state p { font-size: 14px; }
 
-        /* === Upload Zone (Import) === */
-        .upload-zone {
-            border: 2px dashed var(--gray-300);
+        /* === File Uploader === */
+        .file-uploader {
             border-radius: var(--radius);
-            padding: 36px 20px 28px;
+            overflow: hidden;
+            border: 1.5px solid var(--gray-200);
+            background: white;
+            transition: all 0.3s;
+        }
+        .file-uploader:hover { border-color: var(--primary-light); box-shadow: 0 4px 16px rgba(99,102,241,0.1); }
+        .file-uploader.drag-over { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+
+        .fu-upload-area {
+            padding: 36px 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.02), rgba(139, 92, 246, 0.04));
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(180deg, rgba(99,102,241,0.03) 0%, rgba(255,255,255,0) 100%);
+            transition: background 0.3s;
         }
+        .file-uploader:hover .fu-upload-area { background: linear-gradient(180deg, rgba(99,102,241,0.06) 0%, rgba(255,255,255,0) 100%); }
 
-        .upload-zone::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        .upload-zone:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
-        }
-        .upload-zone:hover::after { opacity: 1; }
-
-        .upload-zone.drag-over {
-            border-color: var(--primary);
-            border-style: solid;
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 12px 32px rgba(99, 102, 241, 0.18);
-        }
-        .upload-zone.drag-over::after { opacity: 1; }
-
-        .upload-zone .uz-icon {
-            width: 64px; height: 64px;
-            margin: 0 auto 14px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.15));
+        .fu-upload-icon {
+            width: 56px; height: 56px;
+            margin: 0 auto 12px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
             transition: all 0.3s;
-            position: relative;
-            z-index: 1;
         }
+        .file-uploader:hover .fu-upload-icon { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+        .file-uploader.drag-over .fu-upload-icon { animation: fu-pulse 0.8s ease infinite alternate; }
+        @keyframes fu-pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
 
-        .upload-zone:hover .uz-icon {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.2);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.2));
-        }
+        .fu-upload-text { font-size: 14px; color: var(--gray-600); margin-bottom: 4px; }
+        .fu-upload-text b { color: var(--primary); }
+        .fu-upload-hint { font-size: 12px; color: var(--gray-400); }
 
-        .upload-zone.drag-over .uz-icon {
-            animation: uz-bounce 0.6s ease infinite alternate;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-        }
-
-        @keyframes uz-bounce {
-            from { transform: translateY(-2px); }
-            to { transform: translateY(-8px); }
-        }
-
-        .upload-zone .uz-title {
-            font-size: 15px;
-            color: var(--gray-700);
-            font-weight: 600;
-            margin-bottom: 6px;
-            position: relative; z-index: 1;
-        }
-
-        .upload-zone .uz-title b {
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .upload-zone .uz-sub {
-            font-size: 12px;
-            color: var(--gray-400);
-            position: relative; z-index: 1;
-        }
-
-        .upload-zone .uz-file {
+        /* 选中文件后的状态 */
+        .fu-file-bar {
             display: none;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 14px;
-            padding: 10px 16px;
-            background: rgba(16, 185, 129, 0.08);
+            gap: 12px;
+            padding: 14px 16px;
+            border-top: 1px solid var(--gray-100);
+            background: rgba(16,185,129,0.04);
+            animation: fu-slide-up 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes fu-slide-up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+        .file-uploader.has-file .fu-file-bar { display: flex; }
+
+        .fu-file-icon {
+            width: 36px; height: 36px;
             border-radius: 10px;
-            position: relative; z-index: 1;
-            animation: uz-file-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes uz-file-in {
-            from { opacity: 0; transform: translateY(8px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .upload-zone .uz-file .uz-file-icon {
-            width: 28px; height: 28px;
-            border-radius: 8px;
             background: linear-gradient(135deg, #10b981, #059669);
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
-            color: white;
+            color: white; font-size: 16px;
             flex-shrink: 0;
         }
-
-        .upload-zone .uz-file .uz-file-name {
-            font-size: 13px;
-            color: var(--gray-700);
-            font-weight: 600;
+        .fu-file-info { flex: 1; min-width: 0; }
+        .fu-file-name { font-size: 13px; font-weight: 600; color: var(--gray-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .fu-file-size { font-size: 11px; color: var(--gray-400); }
+        .fu-file-remove {
+            width: 28px; height: 28px;
+            border-radius: 8px; border: none; background: var(--gray-100);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; color: var(--gray-500);
+            transition: all 0.2s;
         }
-
-        .upload-zone.has-file {
-            border-color: #10b981;
-            border-style: solid;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(16, 185, 129, 0.06));
-        }
-        .upload-zone.has-file .uz-icon {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        .upload-zone.has-file .uz-title { color: #065f46; }
-        .upload-zone.has-file .uz-file { display: flex; }
+        .fu-file-remove:hover { background: #fee2e2; color: #ef4444; }
 
         /* === Toast === */
         .toast-container {
@@ -1991,14 +1932,20 @@
             <button class="modal-close" onclick="closeModal('import-modal')">&times;</button>
         </div>
         <div class="modal-body">
-            <button class="btn btn-outline" onclick="downloadTemplate()" style="margin-bottom:20px;width:100%">📄 下载导入模板</button>
-            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('import-file').click()">
-                <div class="uz-icon">⬆️</div>
-                <div class="uz-title">拖拽 Excel 文件到这里，或 <b>点击选择</b></div>
-                <div class="uz-sub">支持 .xlsx 格式，按模板格式填写</div>
-                <div class="uz-file" id="uz-file">
-                    <div class="uz-file-icon">✓</div>
-                    <div class="uz-file-name" id="uz-file-name"></div>
+            <button class="btn btn-outline" onclick="downloadTemplate()" style="margin-bottom:16px;width:100%">📄 下载导入模板</button>
+            <div class="file-uploader" id="file-uploader">
+                <div class="fu-upload-area" id="fu-upload-area">
+                    <div class="fu-upload-icon">📤</div>
+                    <div class="fu-upload-text">拖拽文件到这里，或 <b>点击选择文件</b></div>
+                    <div class="fu-upload-hint">支持 .xlsx 格式</div>
+                </div>
+                <div class="fu-file-bar" id="fu-file-bar">
+                    <div class="fu-file-icon">✓</div>
+                    <div class="fu-file-info">
+                        <div class="fu-file-name" id="fu-file-name"></div>
+                        <div class="fu-file-size" id="fu-file-size"></div>
+                    </div>
+                    <button class="fu-file-remove" id="fu-file-remove" title="移除文件">✕</button>
                 </div>
             </div>
             <input type="file" id="import-file" accept=".xlsx" style="display:none">
@@ -2142,25 +2089,6 @@ function nowShanghai() {
 }
 
 // ========== Pagination ==========
-function adjustTableScroll(wrapperEl) {
-    if (!wrapperEl) return;
-    const scroll = wrapperEl.querySelector('.table-scroll');
-    if (!scroll) return;
-    const rows = scroll.querySelectorAll('tbody tr');
-    if (rows.length <= 10) {
-        scroll.style.maxHeight = 'none';
-        return;
-    }
-    // 等浏览器完成布局后精确测量
-    requestAnimationFrame(() => {
-        const table = scroll.querySelector('table');
-        if (!table) return;
-        // 第11行(索引10)的上边缘 = 前10行+表头的总高度
-        const eleventhTop = rows[10].getBoundingClientRect().top;
-        const tableTop = table.getBoundingClientRect().top;
-        scroll.style.maxHeight = (eleventhTop - tableTop + 2) + 'px';
-    });
-}
 
 function renderPagination(containerId, total, page, pageSize, loadFn) {
     const el = document.getElementById(containerId);
@@ -2427,7 +2355,6 @@ async function loadDashboard(page) {
         const records = recordsRes.data;
         renderDashboardTable(records);
         renderPagination('dashboard-pagination', recordsRes.total, recordsRes.page, recordsRes.page_size, loadDashboard);
-        adjustTableScroll(document.querySelector('#page-dashboard .table-wrapper'));
         initColumnResizers(document.querySelector('#page-dashboard table'));
     } catch (e) {
         console.error('Dashboard load error:', e);
@@ -2474,7 +2401,6 @@ async function loadRecords(page) {
         allRecords = res.data;
         renderRecordsTable(allRecords);
         renderPagination('records-pagination', res.total, res.page, res.page_size, loadRecords);
-        adjustTableScroll(document.querySelector('#page-records .table-wrapper'));
         initColumnResizers(document.querySelector('#page-records table'));
     } catch (e) {
         console.error('Records load error:', e);
@@ -2530,49 +2456,46 @@ function debounceSearch() {
 function openImportModal() {
     document.getElementById('import-file').value = '';
     document.getElementById('import-result').style.display = 'none';
-    const uz = document.getElementById('upload-zone');
-    uz.classList.remove('has-file');
+    document.getElementById('file-uploader').classList.remove('has-file');
     openModal('import-modal');
 }
 
-// 拖拽上传（脚本在页面底部，DOM 已就绪，直接绑定）
-(function initUploadZone() {
-    const uz = document.getElementById('upload-zone');
+// 文件上传组件（脚本在页面底部，DOM 已就绪）
+(function initFileUploader() {
+    const el = document.getElementById('file-uploader');
+    const area = document.getElementById('fu-upload-area');
     const fileInput = document.getElementById('import-file');
-    if (!uz || !fileInput) return;
+    const removeBtn = document.getElementById('fu-file-remove');
+    if (!el || !area || !fileInput) return;
+
+    area.addEventListener('click', () => fileInput.click());
 
     let dragCounter = 0;
-    uz.addEventListener('dragenter', e => {
-        e.preventDefault(); e.stopPropagation();
-        dragCounter++;
-        uz.classList.add('drag-over');
-    });
-    uz.addEventListener('dragover', e => {
-        e.preventDefault(); e.stopPropagation();
-    });
-    uz.addEventListener('dragleave', e => {
-        e.preventDefault(); e.stopPropagation();
-        dragCounter--;
-        if (dragCounter <= 0) { dragCounter = 0; uz.classList.remove('drag-over'); }
-    });
-    uz.addEventListener('drop', e => {
-        e.preventDefault(); e.stopPropagation();
-        dragCounter = 0;
-        uz.classList.remove('drag-over');
+    el.addEventListener('dragenter', e => { e.preventDefault(); e.stopPropagation(); dragCounter++; el.classList.add('drag-over'); });
+    el.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+    el.addEventListener('dragleave', e => { e.preventDefault(); e.stopPropagation(); dragCounter--; if (dragCounter <= 0) { dragCounter = 0; el.classList.remove('drag-over'); } });
+    el.addEventListener('drop', e => {
+        e.preventDefault(); e.stopPropagation(); dragCounter = 0; el.classList.remove('drag-over');
         const files = e.dataTransfer.files;
         if (files.length && files[0].name.endsWith('.xlsx')) {
             fileInput.files = files;
-            onFileSelected(files[0]);
-        } else {
-            showToast('请选择 .xlsx 文件', 'error');
-        }
+            showSelectedFile(files[0]);
+        } else { showToast('请选择 .xlsx 文件', 'error'); }
     });
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) onFileSelected(fileInput.files[0]);
+
+    fileInput.addEventListener('change', () => { if (fileInput.files.length) showSelectedFile(fileInput.files[0]); });
+
+    removeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        fileInput.value = '';
+        el.classList.remove('has-file');
     });
-    function onFileSelected(file) {
-        uz.classList.add('has-file');
-        document.getElementById('uz-file-name').textContent = file.name;
+
+    function showSelectedFile(file) {
+        el.classList.add('has-file');
+        document.getElementById('fu-file-name').textContent = file.name;
+        const kb = (file.size / 1024).toFixed(1);
+        document.getElementById('fu-file-size').textContent = kb > 1024 ? (file.size / 1024 / 1024).toFixed(1) + ' MB' : kb + ' KB';
     }
 })();
 
