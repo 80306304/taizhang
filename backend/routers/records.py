@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, UploadFile, File
 from fastapi.responses import StreamingResponse
 from typing import Optional
+from datetime import datetime
 import psycopg
 import io
 
@@ -241,10 +242,12 @@ async def download_import_template(current_user: dict = Depends(get_current_user
     headers = ["客户", "商品", "成本价", "售价", "其他收入", "实际利润", "快递单号", "快递公司", "是否回款", "下单时间", "备注"]
     ws.append(headers)
     # 示例行
-    ws.append(["张三", "RTX5070显卡", 4200, 4500, 0, 300, "SF1234567890", "shunfeng", "否", "2025-06-18", ""])
+    ws.append(["张三", "RTX5070显卡", 4200, 4500, 0, 300, "SF1234567890", "shunfeng", "否", "2025-06-18 14:30", ""])
     # 调整列宽
     for col_idx, h in enumerate(headers, 1):
         ws.column_dimensions[chr(64 + col_idx)].width = 14
+    # 下单时间列加宽以容纳 "YYYY-MM-DD HH:MM" 格式
+    ws.column_dimensions["J"].width = 20
     buf = io.BytesIO()
     wb.save(buf)
     buf.seek(0)
@@ -292,7 +295,14 @@ async def import_records(
             tracking_no = str(row[6] or "").strip()
             tracking_company = str(row[7] or "").strip()
             is_returned = 1 if str(row[8] or "").strip() in ("是", "1", "yes", "true") else 0
-            created_at = str(row[9] or "").strip() if row[9] else None
+            # 下单时间：兼容 Excel 日期对象和文本字符串，精确到分钟
+            raw_date = row[9]
+            if raw_date is None:
+                created_at = None
+            elif isinstance(raw_date, datetime):
+                created_at = raw_date.strftime("%Y-%m-%d %H:%M")
+            else:
+                created_at = str(raw_date).strip() or None
             note = str(row[10] or "").strip() if len(row) > 10 else ""
 
             if not customer and not product:
