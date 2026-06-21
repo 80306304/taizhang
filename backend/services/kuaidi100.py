@@ -17,8 +17,6 @@ STATE_MAP = {
     "6": "退件签收",
 }
 
-import re
-
 # 快递公司代码 -> 中文名
 COMPANY_NAMES = {
     "jd": "京东快递",
@@ -91,10 +89,24 @@ async def query_tracking(company: str, tracking_no: str) -> dict:
             "company_code": company,
         }
 
-    if data.get("status") != "200":
+    # poll/query.do 返回格式：
+    #   成功: {"status":"200", "state":"2", "data":[...]}
+    #   失败: {"result":false, "returnCode":"408", "message":"..."}
+    status = str(data.get("status", ""))
+    return_code = str(data.get("returnCode", ""))
+
+    if status != "200":
+        raw_msg = data.get("message", "查询失败")
+        # 408 = 快递公司参数异常（API Key 未订阅该快递公司）
+        if return_code == "408" or "验证码错误" in raw_msg:
+            friendly_msg = f"API未授权查询{COMPANY_NAMES.get(company, company)}，请在快递100后台开通该快递公司订阅"
+        else:
+            friendly_msg = raw_msg
         return {
             "success": False,
-            "message": data.get("message", "查询失败"),
+            "message": friendly_msg,
+            "raw_message": raw_msg,
+            "error_code": return_code,
             "state": data.get("state", "0"),
             "state_text": STATE_MAP.get(data.get("state", "0"), "未知"),
             "tracking_no": tracking_no,
