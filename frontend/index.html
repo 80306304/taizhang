@@ -340,7 +340,7 @@
 
         .table-scroll {
             overflow-x: auto;
-            overflow-y: visible;
+            overflow-y: auto;
         }
 
         .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -2104,15 +2104,13 @@ function adjustTableScroll(wrapperEl) {
     if (!scroll) return;
     const rows = scroll.querySelectorAll('tbody tr');
     if (rows.length > 10) {
-        // 超过 10 行：固定高度，启用滚动
+        // 超过 10 行：精确计算 10 行的高度作为 max-height，启用滚动
         const headerH = scroll.querySelector('thead')?.offsetHeight || 46;
         const rowH = rows[0]?.offsetHeight || 47;
         scroll.style.maxHeight = (headerH + rowH * 10 + 4) + 'px';
-        scroll.style.overflowY = 'auto';
     } else {
-        // 10 行以内：自然撑高，无滚动条
+        // 10 行以内：移除 max-height，内容自然撑高，不出现滚动条
         scroll.style.maxHeight = 'none';
-        scroll.style.overflowY = 'visible';
     }
 }
 
@@ -2490,34 +2488,42 @@ function openImportModal() {
     openModal('import-modal');
 }
 
-// 拖拽上传
+// 拖拽上传（脚本在页面底部，DOM 已就绪，直接绑定）
 (function initDropZone() {
-    document.addEventListener('DOMContentLoaded', () => {
-        const dz = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('import-file');
-        if (!dz) return;
+    const dz = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('import-file');
+    if (!dz || !fileInput) return;
 
-        ['dragenter', 'dragover'].forEach(evt => {
-            dz.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('drag-over'); });
-        });
-        ['dragleave', 'drop'].forEach(evt => {
-            dz.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('drag-over'); });
-        });
-        dz.addEventListener('drop', e => {
-            const files = e.dataTransfer.files;
-            if (files.length && files[0].name.endsWith('.xlsx')) {
-                fileInput.files = files;
-                onFileSelected(files[0]);
-            } else {
-                showToast('请选择 .xlsx 文件', 'error');
-            }
-        });
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) onFileSelected(fileInput.files[0]);
-        });
+    let dragCounter = 0;
+    dz.addEventListener('dragenter', e => {
+        e.preventDefault(); e.stopPropagation();
+        dragCounter++;
+        dz.classList.add('drag-over');
+    });
+    dz.addEventListener('dragover', e => {
+        e.preventDefault(); e.stopPropagation();
+    });
+    dz.addEventListener('dragleave', e => {
+        e.preventDefault(); e.stopPropagation();
+        dragCounter--;
+        if (dragCounter <= 0) { dragCounter = 0; dz.classList.remove('drag-over'); }
+    });
+    dz.addEventListener('drop', e => {
+        e.preventDefault(); e.stopPropagation();
+        dragCounter = 0;
+        dz.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length && files[0].name.endsWith('.xlsx')) {
+            fileInput.files = files;
+            onFileSelected(files[0]);
+        } else {
+            showToast('请选择 .xlsx 文件', 'error');
+        }
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) onFileSelected(fileInput.files[0]);
     });
     function onFileSelected(file) {
-        const dz = document.getElementById('drop-zone');
         dz.classList.add('has-file');
         document.getElementById('dz-filename').textContent = '📎 ' + file.name;
     }
