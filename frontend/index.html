@@ -340,7 +340,7 @@
 
         .table-scroll {
             overflow-x: auto;
-            max-height: 520px;
+            max-height: 600px;
             min-height: 120px;
             overflow-y: auto;
         }
@@ -656,6 +656,63 @@
 
         .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
         .empty-state p { font-size: 14px; }
+
+        /* === Drop Zone (Import) === */
+        .drop-zone {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius);
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(99, 102, 241, 0.02);
+            position: relative;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary-light);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        .drop-zone .dz-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0.7;
+        }
+
+        .drop-zone .dz-text {
+            font-size: 14px;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .drop-zone .dz-hint {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 6px;
+        }
+
+        .drop-zone .dz-filename {
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .drop-zone.has-file {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .drop-zone.has-file .dz-filename { display: block; }
 
         /* === Toast === */
         .toast-container {
@@ -1728,7 +1785,7 @@
 
 <!-- ========== Tracking Detail Modal ========== -->
 <div id="tracking-detail-modal" class="modal-overlay">
-    <div class="modal" style="max-width:520px">
+    <div class="modal" style="max-width:680px">
         <div class="modal-header" style="border-bottom:none;padding:16px 20px 8px">
             <h2 style="font-size:16px">📦 物流详情</h2>
             <button class="modal-close" onclick="closeModal('tracking-detail-modal')">&times;</button>
@@ -1861,14 +1918,14 @@
             <button class="modal-close" onclick="closeModal('import-modal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">
-                请先下载模板，按模板格式填写数据后上传。
-            </p>
             <button class="btn btn-outline" onclick="downloadTemplate()" style="margin-bottom:20px;width:100%">📄 下载导入模板</button>
-            <div style="border-top:1px solid var(--gray-100);padding-top:16px">
-                <label class="form-label">选择文件（.xlsx）</label>
-                <input type="file" id="import-file" accept=".xlsx" class="input" style="padding:8px">
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('import-file').click()">
+                <span class="dz-icon">📁</span>
+                <div class="dz-text">拖拽文件到此处，或点击选择</div>
+                <div class="dz-hint">支持 .xlsx 格式</div>
+                <div class="dz-filename" id="dz-filename"></div>
             </div>
+            <input type="file" id="import-file" accept=".xlsx" style="display:none">
             <div id="import-result" style="margin-top:12px;display:none"></div>
         </div>
         <div class="modal-footer">
@@ -2057,7 +2114,13 @@ function getDateRange(period) {
     const y = now.getFullYear();
     const m = now.getMonth();
     let from = '', to = '';
-    const fmt = d => d.toISOString().slice(0, 10);
+    // 使用本地日期，避免 toISOString() 转 UTC 导致凌晨时段日期偏移
+    const fmt = d => {
+        const yy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yy}-${mm}-${dd}`;
+    };
 
     switch (period) {
         case 'month':
@@ -2369,8 +2432,44 @@ function debounceSearch() {
 function openImportModal() {
     document.getElementById('import-file').value = '';
     document.getElementById('import-result').style.display = 'none';
+    const dz = document.getElementById('drop-zone');
+    dz.classList.remove('has-file');
+    document.getElementById('dz-filename').textContent = '';
     openModal('import-modal');
 }
+
+// 拖拽上传
+(function initDropZone() {
+    document.addEventListener('DOMContentLoaded', () => {
+        const dz = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('import-file');
+        if (!dz) return;
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            dz.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('drag-over'); });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            dz.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('drag-over'); });
+        });
+        dz.addEventListener('drop', e => {
+            const files = e.dataTransfer.files;
+            if (files.length && files[0].name.endsWith('.xlsx')) {
+                fileInput.files = files;
+                onFileSelected(files[0]);
+            } else {
+                showToast('请选择 .xlsx 文件', 'error');
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) onFileSelected(fileInput.files[0]);
+        });
+    });
+    function onFileSelected(file) {
+        const dz = document.getElementById('drop-zone');
+        dz.classList.add('has-file');
+        document.getElementById('dz-filename').textContent = '📎 ' + file.name;
+    }
+})();
 
 function downloadTemplate() {
     const a = document.createElement('a');
@@ -2656,6 +2755,9 @@ async function showTrackingDetail(recordId) {
             return;
         }
         body.innerHTML = renderTrackingResult(d);
+        // 查询成功后自动刷新列表，同步物流状态
+        loadRecords();
+        loadDashboard();
     } catch (e) {
         body.innerHTML = '<div class="tracking-detail-empty"><span class="icon">❌</span><p style="color:var(--danger)">查询失败，请重试</p></div>';
     }
