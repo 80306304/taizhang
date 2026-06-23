@@ -42,7 +42,9 @@ async def get_stats(
     row = await cursor.fetchone()
     total_cost = row["v"]
 
-    cursor = await db.execute(f"SELECT COALESCE(SUM(profit), 0) as v FROM records{where}", params)
+    # 利润 = 已签收订单的(售价+其他收入-成本)
+    delivered_where = where + " AND tracking_state = '3'"
+    cursor = await db.execute(f"SELECT COALESCE(SUM(buy_price + other_income - cost_price), 0) as v FROM records{delivered_where}", params)
     row = await cursor.fetchone()
     total_profit = row["v"]
 
