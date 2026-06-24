@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "物流详情",
+  "usingComponents": {
+    "tracking-timeline": "/components/tracking-timeline/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

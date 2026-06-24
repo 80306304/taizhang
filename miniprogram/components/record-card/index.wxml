@@ -1,0 +1,47 @@
+<view class="record-card {{compact ? 'compact' : ''}}" bindtap="onTap">
+  <!-- Header: Customer + Product -->
+  <view class="card-header">
+    <view class="customer-name">{{record.customer || '-'}}</view>
+    <view class="product-name">{{record.product || '-'}}</view>
+  </view>
+
+  <!-- Info Grid -->
+  <view class="card-info">
+    <view class="info-item">
+      <text class="info-label">成本</text>
+      <text class="info-value">{{record.cost_price}}</text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">售价</text>
+      <text class="info-value">{{record.buy_price}}</text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">利润</text>
+      <text class="info-value {{record.profit > 0 ? 'profit-positive' : record.profit < 0 ? 'profit-negative' : 'profit-zero'}}">
+        {{record.profit > 0 ? '+' : ''}}{{record.profit}}
+      </text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">时间</text>
+      <text class="info-value text-sm">{{record.created_at ? record.created_at.slice(5, 16) : '-'}}</text>
+    </view>
+  </view>
+
+  <!-- Status Row -->
+  <view class="card-status">
+    <view wx:if="{{record.tracking_state_text && record.tracking_state_text !== '未查询'}}" class="badge badge-{{record.tracking_state === '3' ? 'success' : record.tracking_state === '2' ? 'info' : 'gray'}}">
+      🚚 {{record.tracking_state_text}}
+    </view>
+    <view class="badge {{record.is_returned ? 'badge-success' : 'badge-danger'}}">
+      {{record.is_returned ? '✅ 已回款' : '⏳ 未回款'}}
+    </view>
+  </view>
+
+  <!-- Actions -->
+  <view wx:if="{{showActions}}" class="card-actions">
+    <view class="action-btn" catchtap="onEdit">✏️ 编辑</view>
+    <view wx:if="{{!record.is_returned}}" class="action-btn action-success" catchtap="onReturn">💰 回款</view>
+    <view wx:if="{{record.tracking_no}}" class="action-btn action-info" catchtap="onTracking">🚚 物流</view>
+    <view class="action-btn action-danger" catchtap="onDelete">🗑️ 删除</view>
+  </view>
+</view>

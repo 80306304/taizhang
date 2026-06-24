@@ -1,0 +1,95 @@
+.form-page {
+  padding: 24rpx 28rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 120rpx);
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 24rpx rgba(99, 102, 241, 0.08);
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 20rpx;
+}
+
+.form-group {
+  margin-bottom: 20rpx;
+}
+
+.form-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-bottom: 8rpx;
+}
+
+.input-wrap {
+  background: var(--gray-50);
+  border: 2rpx solid var(--gray-200);
+  border-radius: 10rpx;
+  padding: 16rpx 20rpx;
+}
+
+.input-field {
+  font-size: 28rpx;
+  color: var(--gray-800);
+}
+
+.textarea-wrap {
+  min-height: 120rpx;
+}
+
+.textarea-field {
+  font-size: 28rpx;
+  color: var(--gray-800);
+  width: 100%;
+  min-height: 100rpx;
+}
+
+.picker-value {
+  font-size: 28rpx;
+  color: var(--gray-700);
+}
+
+.form-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.flex-1 { flex: 1; min-width: 0; }
+
+.profit-preview {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 0;
+  margin-bottom: 16rpx;
+}
+
+.profit-label {
+  font-size: 26rpx;
+  color: var(--gray-500);
+}
+
+.profit-val {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.btn-row {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 28rpx;
+  background: #fff;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+}

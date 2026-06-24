@@ -1,0 +1,71 @@
+.tracking-page {
+  padding: 24rpx 28rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 24rpx rgba(99, 102, 241, 0.08);
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 20rpx;
+}
+
+.form-group {
+  margin-bottom: 20rpx;
+}
+
+.form-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-bottom: 8rpx;
+}
+
+.query-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.flex-1 { flex: 1; min-width: 0; }
+
+.input-wrap {
+  background: var(--gray-50);
+  border: 2rpx solid var(--gray-200);
+  border-radius: 10rpx;
+  padding: 16rpx 20rpx;
+}
+
+.input-field {
+  font-size: 28rpx;
+  color: var(--gray-800);
+}
+
+.picker-value {
+  font-size: 28rpx;
+  color: var(--gray-700);
+}
+
+.hint {
+  font-size: 22rpx;
+  color: var(--gray-400);
+  line-height: 1.6;
+}
+
+.mb-md { margin-bottom: 20rpx; }
+
+.code {
+  font-family: monospace;
+  background: var(--gray-100);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  font-size: 22rpx;
+}

@@ -1,0 +1,90 @@
+<view class="form-page">
+  <!-- Basic Info -->
+  <view class="card">
+    <view class="card-title">📋 基本信息</view>
+    <view class="form-group">
+      <view class="form-label">客户</view>
+      <view class="input-wrap"><input class="input-field" placeholder="客户名称" value="{{form.customer}}" data-field="customer" bindinput="onInput" /></view>
+    </view>
+    <view class="form-group">
+      <view class="form-label">商品</view>
+      <view class="input-wrap"><input class="input-field" placeholder="商品名称" value="{{form.product}}" data-field="product" bindinput="onInput" /></view>
+    </view>
+    <view class="form-group">
+      <view class="form-label">下单时间</view>
+      <picker mode="date" value="{{form.created_at}}" bindchange="onDateChange">
+        <view class="input-wrap picker-value">{{form.created_at || '选择日期（可选）'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- Financial Info -->
+  <view class="card">
+    <view class="card-title">💰 财务信息</view>
+    <view class="form-row">
+      <view class="form-group flex-1">
+        <view class="form-label">成本价</view>
+        <view class="input-wrap"><input class="input-field" type="digit" placeholder="0" value="{{form.cost_price}}" data-field="cost_price" bindinput="onInput" /></view>
+      </view>
+      <view class="form-group flex-1">
+        <view class="form-label">售价</view>
+        <view class="input-wrap"><input class="input-field" type="digit" placeholder="0" value="{{form.buy_price}}" data-field="buy_price" bindinput="onInput" /></view>
+      </view>
+    </view>
+    <view class="form-row">
+      <view class="form-group flex-1">
+        <view class="form-label">其他收入</view>
+        <view class="input-wrap"><input class="input-field" type="digit" placeholder="0" value="{{form.other_income}}" data-field="other_income" bindinput="onInput" /></view>
+      </view>
+      <view class="form-group flex-1">
+        <view class="form-label">实际利润</view>
+        <view class="input-wrap"><input class="input-field" type="digit" placeholder="可选" value="{{form.actual_profit}}" data-field="actual_profit" bindinput="onInput" /></view>
+      </view>
+    </view>
+    <view class="profit-preview">
+      <text class="profit-label">预估利润：</text>
+      <text class="profit-val {{previewProfit > 0 ? 'profit-positive' : previewProfit < 0 ? 'profit-negative' : 'profit-zero'}}">¥{{previewProfit}}</text>
+    </view>
+    <view class="form-group">
+      <view class="form-label">回款状态</view>
+      <picker range="{{['未回款', '已回款']}}" value="{{form.is_returned}}" bindchange="onReturnChange">
+        <view class="input-wrap picker-value">{{form.is_returned ? '✅ 已回款' : '⏳ 未回款'}}</view>
+      </picker>
+    </view>
+    <view wx:if="{{form.is_returned}}" class="form-group">
+      <view class="form-label">回款时间</view>
+      <picker mode="date" value="{{form.returned_at}}" bindchange="onReturnDateChange">
+        <view class="input-wrap picker-value">{{form.returned_at || '选择回款日期'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- Logistics Info -->
+  <view class="card">
+    <view class="card-title">🚚 物流信息</view>
+    <view class="form-group">
+      <view class="form-label">快递单号</view>
+      <view class="input-wrap"><input class="input-field" placeholder="快递单号" value="{{form.tracking_no}}" data-field="tracking_no" bindinput="onInput" /></view>
+    </view>
+    <view class="form-group">
+      <view class="form-label">快递公司</view>
+      <picker range="{{companyNames}}" value="{{companyIndex}}" bindchange="onCompanyChange">
+        <view class="input-wrap picker-value">{{companyNames[companyIndex] || '选择快递公司'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <view class="input-wrap textarea-wrap">
+        <textarea class="textarea-field" placeholder="备注信息" value="{{form.note}}" data-field="note" bindinput="onInput" />
+      </view>
+    </view>
+  </view>
+
+  <!-- Buttons -->
+  <view class="btn-row safe-bottom">
+    <button class="btn btn-outline flex-1" bindtap="doCancel">取消</button>
+    <button class="btn btn-primary flex-1" loading="{{submitting}}" disabled="{{submitting}}" bindtap="doSave">
+      {{isEdit ? '保存修改' : '创建记录'}}
+    </button>
+  </view>
+</view>

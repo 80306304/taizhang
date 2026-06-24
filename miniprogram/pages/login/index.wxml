@@ -1,0 +1,62 @@
+<view class="login-page">
+  <!-- Background gradient -->
+  <view class="bg-gradient"></view>
+
+  <!-- Brand header -->
+  <view class="brand-section">
+    <view class="brand-icon">📊</view>
+    <view class="brand-title">台账管理系统</view>
+    <view class="brand-subtitle">订单 · 利润 · 物流 一站式管理</view>
+  </view>
+
+  <!-- Form card -->
+  <view class="form-card">
+    <!-- Tabs -->
+    <view class="auth-tabs">
+      <view class="auth-tab {{currentTab === 'login' ? 'active' : ''}}" data-tab="login" bindtap="switchTab">登录</view>
+      <view class="auth-tab {{currentTab === 'register' ? 'active' : ''}}" data-tab="register" bindtap="switchTab">注册</view>
+    </view>
+
+    <!-- Login Form -->
+    <view wx:if="{{currentTab === 'login'}}" class="form-body">
+      <view class="form-group">
+        <view class="input-wrap">
+          <input class="input-field" placeholder="用户名" value="{{username}}" bindinput="onUsernameInput" />
+        </view>
+      </view>
+      <view class="form-group">
+        <view class="input-wrap">
+          <input class="input-field" placeholder="密码" password value="{{password}}" bindinput="onPasswordInput" />
+        </view>
+      </view>
+      <view wx:if="{{errorMsg}}" class="error-msg">{{errorMsg}}</view>
+      <button class="btn btn-primary btn-block login-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="doLogin">登 录</button>
+    </view>
+
+    <!-- Register Form -->
+    <view wx:else class="form-body">
+      <view class="form-group">
+        <view class="input-wrap">
+          <input class="input-field" placeholder="用户名（至少2个字符）" value="{{username}}" bindinput="onUsernameInput" />
+        </view>
+      </view>
+      <view class="form-group">
+        <view class="input-wrap">
+          <input class="input-field" placeholder="注册码" value="{{inviteCode}}" bindinput="onInviteInput" />
+        </view>
+      </view>
+      <view class="form-group">
+        <view class="input-wrap">
+          <input class="input-field" placeholder="密码（至少6位）" password value="{{password}}" bindinput="onPasswordInput" />
+        </view>
+      </view>
+      <view class="form-group">
+        <view class="input-wrap">
+          <input class="input-field" placeholder="确认密码" password value="{{confirmPassword}}" bindinput="onConfirmInput" />
+        </view>
+      </view>
+      <view wx:if="{{errorMsg}}" class="error-msg">{{errorMsg}}</view>
+      <button class="btn btn-primary btn-block login-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="doRegister">注 册</button>
+    </view>
+  </view>
+</view>

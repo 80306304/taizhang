@@ -1,0 +1,7 @@
+<view class="empty-state">
+  <view wx:if="{{loading}}" class="loading-spinner"></view>
+  <view wx:else>
+    <view class="empty-icon">{{icon}}</view>
+    <view class="empty-text">{{text}}</view>
+  </view>
+</view>

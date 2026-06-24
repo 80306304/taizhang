@@ -1,0 +1,61 @@
+.records-page {
+  padding: 24rpx 28rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+}
+
+/* Smart Input */
+.smart-input-area {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.06));
+  border: 2rpx solid rgba(99, 102, 241, 0.15);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.smart-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 8rpx;
+}
+
+.smart-hint {
+  font-size: 22rpx;
+  color: var(--gray-400);
+  margin-bottom: 16rpx;
+}
+
+.smart-row {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.smart-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+/* Search */
+.search-bar {
+  margin-bottom: 16rpx;
+}
+
+.search-input {
+  padding: 14rpx 24rpx;
+}
+
+/* Action Bar */
+.action-bar {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  flex-wrap: wrap;
+}
+
+/* Flex utility */
+.flex-1 { flex: 1; min-width: 0; }
+
+.loading-wrap {
+  padding: 40rpx 0;
+}

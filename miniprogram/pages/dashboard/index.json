@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "仪表盘",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "stat-card": "/components/stat-card/index",
+    "record-card": "/components/record-card/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

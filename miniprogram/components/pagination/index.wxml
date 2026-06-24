@@ -1,0 +1,7 @@
+<view class="pagination" wx:if="{{total > 0}}">
+  <view wx:if="{{hasMore}}" class="load-more" bindtap="onLoadMore">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:else>加载更多 ({{total}}条)</text>
+  </view>
+  <view wx:else class="no-more">已显示全部 {{total}} 条</view>
+</view>

@@ -1,0 +1,55 @@
+<view class="dashboard-page">
+  <!-- User greeting -->
+  <view class="greeting">
+    <text>👋 {{user.username || ''}}</text>
+    <view wx:if="{{isAdmin}}" class="admin-btn" bindtap="goAdmin">👥 管理</view>
+  </view>
+
+  <!-- Time Filter -->
+  <view class="time-filter">
+    <scroll-view scroll-x enable-flex class="period-scroll">
+      <view class="period-btn {{period === 'all' ? 'active' : ''}}" data-period="all" bindtap="setPeriod">全部</view>
+      <view class="period-btn {{period === 'month' ? 'active' : ''}}" data-period="month" bindtap="setPeriod">本月</view>
+      <view class="period-btn {{period === 'quarter' ? 'active' : ''}}" data-period="quarter" bindtap="setPeriod">本季</view>
+      <view class="period-btn {{period === 'year' ? 'active' : ''}}" data-period="year" bindtap="setPeriod">本年</view>
+      <view class="period-btn {{period === 'custom' ? 'active' : ''}}" data-period="custom" bindtap="setPeriod">自定义</view>
+    </scroll-view>
+    <view wx:if="{{period === 'custom'}}" class="custom-date">
+      <picker mode="date" value="{{dateFrom}}" bindchange="onDateFromChange">
+        <view class="date-picker">{{dateFrom || '开始日期'}}</view>
+      </picker>
+      <text class="date-sep">至</text>
+      <picker mode="date" value="{{dateTo}}" bindchange="onDateToChange">
+        <view class="date-picker">{{dateTo || '结束日期'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- Stats Grid -->
+  <view class="stats-grid">
+    <stat-card icon="📦" label="总订单" value="{{stats.total_orders}}" />
+    <stat-card icon="💰" label="总利润（已签收）" value="{{stats.total_profit}}" colorType="orange" sub="已签收订单 总收入-总成本" />
+    <stat-card icon="✅" label="利润（已回款）" value="{{stats.total_actual_profit}}" colorType="success" sub="已回款订单 出售价-总成本" />
+    <stat-card icon="🏷️" label="总成本" value="{{stats.total_cost}}" />
+    <stat-card icon="💵" label="出售价" value="{{stats.total_buy_price}}" colorType="info" />
+    <stat-card icon="✅" label="已回款" value="{{stats.returned_count}}" colorType="success" />
+    <stat-card icon="⏳" label="未回款" value="{{stats.unreturned_count}}" colorType="danger" sub="回款率 {{stats.return_rate}}%" />
+    <stat-card icon="🚚" label="运输中" value="{{stats.shipping_count}}" colorType="info" />
+    <stat-card icon="📬" label="已签收" value="{{stats.delivered_count}}" colorType="purple" />
+  </view>
+
+  <!-- Recent Records -->
+  <view class="section-header">
+    <view class="section-title">📋 最近记录</view>
+  </view>
+
+  <empty-state wx:if="{{!loading && recentRecords.length === 0}}" icon="📭" text="暂无记录" />
+
+  <block wx:for="{{recentRecords}}" wx:key="id">
+    <record-card record="{{item}}" showActions="{{false}}" compact="{{true}}" bindtap="onRecordTap" />
+  </block>
+
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <empty-state loading="{{true}}" text="加载中..." />
+  </view>
+</view>

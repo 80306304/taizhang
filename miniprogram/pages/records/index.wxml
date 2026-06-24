@@ -1,0 +1,54 @@
+<view class="records-page">
+  <!-- Smart Input -->
+  <view class="smart-input-area">
+    <view class="smart-title">✨ 智能录入</view>
+    <view class="smart-hint">自然语言自动解析，如 "老婆 5070显卡 成本 4200 买价 4500"</view>
+    <view class="smart-row">
+      <view class="input-wrap flex-1">
+        <input class="input-field" placeholder="输入记录内容..." value="{{smartInput}}" bindinput="onSmartInput" />
+      </view>
+    </view>
+    <view class="smart-actions">
+      <button class="btn btn-primary btn-sm" bindtap="parseSmartInput">🔍 解析</button>
+      <button class="btn btn-success btn-sm" bindtap="parseAndSave">💾 直接保存</button>
+    </view>
+  </view>
+
+  <!-- Search -->
+  <view class="search-bar">
+    <view class="input-wrap search-input">
+      <input class="input-field" placeholder="🔍 搜索客户、商品、快递单号..." value="{{searchKey}}" bindinput="onSearchInput" />
+    </view>
+  </view>
+
+  <!-- Action Buttons -->
+  <view class="action-bar">
+    <button class="btn btn-primary btn-sm" bindtap="goAdd">+ 手动新增</button>
+    <button class="btn btn-outline btn-sm" bindtap="goImport">📥 导入</button>
+    <button class="btn btn-info btn-sm" loading="{{syncing}}" disabled="{{syncing}}" bindtap="syncTracking">🚚 同步物流</button>
+    <button class="btn btn-outline btn-sm" bindtap="refresh">🔄</button>
+  </view>
+
+  <!-- Filter -->
+  <filter-chips options="{{filterOptions}}" value="{{filter}}" bind:change="onFilterChange" />
+
+  <!-- Record List -->
+  <empty-state wx:if="{{!loading && records.length === 0}}" icon="📭" text="暂无记录" />
+
+  <block wx:for="{{records}}" wx:key="id">
+    <record-card
+      record="{{item}}"
+      bind:tap="onRecordTap"
+      bind:edit="onRecordEdit"
+      bind:delete="onRecordDelete"
+      bind:return="onRecordReturn"
+      bind:tracking="onRecordTracking"
+    />
+  </block>
+
+  <pagination total="{{total}}" page="{{page - 1}}" pageSize="{{20}}" loading="{{loading}}" hasMore="{{hasMore}}" />
+
+  <view wx:if="{{loading && records.length === 0}}" class="loading-wrap">
+    <empty-state loading="{{true}}" text="加载中..." />
+  </view>
+</view>

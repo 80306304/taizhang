@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "记录列表",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 100,
+  "usingComponents": {
+    "record-card": "/components/record-card/index",
+    "filter-chips": "/components/filter-chips/index",
+    "pagination": "/components/pagination/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

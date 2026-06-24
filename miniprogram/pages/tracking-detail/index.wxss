@@ -1,0 +1,90 @@
+.tracking-detail-page {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+}
+
+.gradient-header {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  color: #fff;
+  padding: 48rpx 36rpx;
+  text-align: center;
+}
+
+.header-company {
+  font-size: 36rpx;
+  font-weight: 800;
+  margin-bottom: 8rpx;
+}
+
+.header-no {
+  font-size: 26rpx;
+  opacity: 0.85;
+  font-family: monospace;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 24rpx rgba(99, 102, 241, 0.08);
+  margin: 20rpx 28rpx;
+  padding: 28rpx;
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 20rpx;
+}
+
+.status-card {
+  text-align: center;
+}
+
+.status-badge {
+  font-size: 28rpx;
+  padding: 10rpx 28rpx;
+  display: inline-block;
+  margin-bottom: 16rpx;
+}
+
+.latest-info {
+  text-align: left;
+}
+
+.latest-time {
+  font-size: 24rpx;
+  color: var(--gray-400);
+  margin-bottom: 4rpx;
+}
+
+.latest-text {
+  font-size: 28rpx;
+  color: var(--gray-700);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.error-msg {
+  font-size: 26rpx;
+  color: var(--danger);
+  padding: 16rpx 0;
+}
+
+.error-card {
+  text-align: center;
+  padding: 120rpx 40rpx;
+}
+
+.error-icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.error-text {
+  font-size: 28rpx;
+  color: var(--danger);
+}
+
+.loading-wrap {
+  padding: 120rpx 0;
+}

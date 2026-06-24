@@ -1,0 +1,13 @@
+<view class="timeline" wx:if="{{items.length > 0}}">
+  <view class="timeline-item {{index === 0 ? 'active' : ''}}" wx:for="{{items}}" wx:key="time">
+    <view class="timeline-dot-wrap">
+      <view class="timeline-dot"></view>
+      <view wx:if="{{index < items.length - 1}}" class="timeline-line"></view>
+    </view>
+    <view class="timeline-content">
+      <view class="timeline-time">{{item.time}}</view>
+      <view class="timeline-text">{{item.context}}</view>
+    </view>
+  </view>
+</view>
+<view wx:else class="empty-timeline">暂无物流轨迹</view>

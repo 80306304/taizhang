@@ -1,0 +1,53 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/dashboard/index",
+    "pages/records/index",
+    "pages/record-form/index",
+    "pages/record-detail/index",
+    "pages/tracking/index",
+    "pages/tracking-detail/index",
+    "pages/import/index",
+    "pages/admin/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#6366f1",
+    "navigationBarTitleText": "台账管理系统",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f0f0ff",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#94a3b8",
+    "selectedColor": "#6366f1",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/index",
+        "text": "仪表盘",
+        "iconPath": "images/tab-dashboard.png",
+        "selectedIconPath": "images/tab-dashboard-active.png"
+      },
+      {
+        "pagePath": "pages/records/index",
+        "text": "记录",
+        "iconPath": "images/tab-records.png",
+        "selectedIconPath": "images/tab-records-active.png"
+      },
+      {
+        "pagePath": "pages/tracking/index",
+        "text": "快递",
+        "iconPath": "images/tab-tracking.png",
+        "selectedIconPath": "images/tab-tracking-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.writePhotosAlbum": {
+      "desc": "用于保存导入模板文件"
+    }
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

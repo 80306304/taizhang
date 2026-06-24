@@ -1,0 +1,23 @@
+.chips-scroll {
+  white-space: nowrap;
+  padding: 8rpx 0 16rpx;
+}
+
+.chip {
+  display: inline-block;
+  padding: 10rpx 28rpx;
+  margin-right: 12rpx;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  transition: all 0.2s;
+}
+
+.chip.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+}
+
+.chip:active { opacity: 0.8; }

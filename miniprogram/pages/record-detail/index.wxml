@@ -1,0 +1,89 @@
+<view class="detail-page" wx:if="{{record}}">
+  <!-- Header -->
+  <view class="gradient-header">
+    <view class="header-customer">{{record.customer || '-'}}</view>
+    <view class="header-product">{{record.product || '-'}}</view>
+    <view class="header-profit {{record.profit > 0 ? 'profit-positive' : record.profit < 0 ? 'profit-negative' : 'profit-zero'}}">
+      ¥{{record.profit}}
+    </view>
+  </view>
+
+  <!-- Status Badges -->
+  <view class="status-row">
+    <view class="badge {{record.is_returned ? 'badge-success' : 'badge-danger'}}">
+      {{record.is_returned ? '✅ 已回款' : '⏳ 未回款'}}
+    </view>
+    <view wx:if="{{record.tracking_state_text && record.tracking_state_text !== '未查询'}}"
+          class="badge badge-{{record.tracking_state === '3' ? 'success' : record.tracking_state === '2' ? 'info' : 'gray'}}">
+      🚚 {{record.tracking_state_text}}
+    </view>
+  </view>
+
+  <!-- Detail List -->
+  <view class="card">
+    <view class="detail-item">
+      <text class="detail-label">成本价</text>
+      <text class="detail-value">¥{{record.cost_price}}</text>
+    </view>
+    <view class="detail-item">
+      <text class="detail-label">售价</text>
+      <text class="detail-value">¥{{record.buy_price}}</text>
+    </view>
+    <view class="detail-item">
+      <text class="detail-label">其他收入</text>
+      <text class="detail-value">¥{{record.other_income}}</text>
+    </view>
+    <view class="detail-item">
+      <text class="detail-label">利润</text>
+      <text class="detail-value {{record.profit > 0 ? 'profit-positive' : record.profit < 0 ? 'profit-negative' : 'profit-zero'}}">¥{{record.profit}}</text>
+    </view>
+    <view wx:if="{{record.actual_profit}}" class="detail-item">
+      <text class="detail-label">实际利润</text>
+      <text class="detail-value">¥{{record.actual_profit}}</text>
+    </view>
+    <view wx:if="{{record.tracking_no}}" class="detail-item">
+      <text class="detail-label">快递单号</text>
+      <text class="detail-value" selectable>{{record.tracking_no}}</text>
+    </view>
+    <view wx:if="{{record.tracking_company}}" class="detail-item">
+      <text class="detail-label">快递公司</text>
+      <text class="detail-value">{{record.tracking_company}}</text>
+    </view>
+    <view wx:if="{{record.tracking_latest_context}}" class="detail-item">
+      <text class="detail-label">最新物流</text>
+      <text class="detail-value">{{record.tracking_latest_context}}</text>
+    </view>
+    <view wx:if="{{record.note}}" class="detail-item">
+      <text class="detail-label">备注</text>
+      <text class="detail-value">{{record.note}}</text>
+    </view>
+    <view class="detail-item">
+      <text class="detail-label">下单时间</text>
+      <text class="detail-value">{{record._created_fmt}}</text>
+    </view>
+    <view wx:if="{{record.returned_at}}" class="detail-item">
+      <text class="detail-label">回款时间</text>
+      <text class="detail-value">{{record._returned_fmt}}</text>
+    </view>
+    <view wx:if="{{record.id}}" class="detail-item">
+      <text class="detail-label">记录ID</text>
+      <text class="detail-value text-muted">#{{record.id}}</text>
+    </view>
+  </view>
+
+  <!-- Actions -->
+  <view class="actions safe-bottom">
+    <button class="btn btn-primary" bindtap="doEdit">✏️ 编辑</button>
+    <button wx:if="{{!record.is_returned}}" class="btn btn-success" bindtap="doReturn">💰 标记回款</button>
+    <button wx:if="{{record.tracking_no}}" class="btn btn-info" bindtap="doTracking">🚚 查看物流</button>
+    <button class="btn btn-danger" bindtap="doDelete">🗑️ 删除</button>
+  </view>
+</view>
+
+<view wx:if="{{loading}}" class="loading-wrap">
+  <empty-state loading="{{true}}" text="加载中..." />
+</view>
+
+<view wx:elif="{{!record}}" class="loading-wrap">
+  <empty-state icon="😕" text="记录不存在或加载失败" />
+</view>

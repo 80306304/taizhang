@@ -150,6 +150,8 @@
         .stat-card.warning::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
         .stat-card.danger::before { background: linear-gradient(90deg, #ef4444, #f87171); }
         .stat-card.info::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .stat-card.orange::before { background: linear-gradient(90deg, #f97316, #fb923c); }
+        .stat-card.purple::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
 
         .stat-card:hover {
             transform: translateY(-3px);
@@ -1559,25 +1561,26 @@
                 <div class="stat-label">总订单</div>
                 <div class="stat-value" id="stat-total-orders">-</div>
             </div>
-            <div class="stat-card success">
+            <div class="stat-card orange">
                 <div class="stat-icon">💰</div>
                 <div class="stat-label">总利润（已签收）</div>
                 <div class="stat-value" id="stat-total-profit">-</div>
                 <div class="stat-sub">已签收订单 总收入-总成本</div>
             </div>
-            <div class="stat-card warning">
+            <div class="stat-card success">
                 <div class="stat-icon">✅</div>
-                <div class="stat-label">利润</div>
+                <div class="stat-label">利润（已回款）</div>
                 <div class="stat-value" id="stat-actual-profit">-</div>
+                <div class="stat-sub">已回款订单 出售价-总成本</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🏷️</div>
                 <div class="stat-label">总成本</div>
                 <div class="stat-value" id="stat-total-cost">-</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card info">
                 <div class="stat-icon">💵</div>
-                <div class="stat-label">总售价</div>
+                <div class="stat-label">出售价</div>
                 <div class="stat-value" id="stat-total-buy">-</div>
             </div>
             <div class="stat-card success">
@@ -1596,7 +1599,7 @@
                 <div class="stat-label">运输中</div>
                 <div class="stat-value" id="stat-shipping">-</div>
             </div>
-            <div class="stat-card success">
+            <div class="stat-card purple">
                 <div class="stat-icon">📬</div>
                 <div class="stat-label">已签收</div>
                 <div class="stat-value" id="stat-delivered">-</div>
@@ -1854,7 +1857,7 @@
                         <input type="number" class="input" id="f-cost" placeholder="0" step="0.01">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">买价（售价）</label>
+                        <label class="form-label">出售价</label>
                         <input type="number" class="input" id="f-buy" placeholder="0" step="0.01">
                     </div>
                 </div>

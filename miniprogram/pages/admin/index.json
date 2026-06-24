@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "用户管理",
+  "usingComponents": {
+    "pagination": "/components/pagination/index",
+    "empty-state": "/components/empty-state/index"
+  }
+}

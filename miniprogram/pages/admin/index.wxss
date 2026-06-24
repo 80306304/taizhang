@@ -1,0 +1,111 @@
+.admin-page {
+  padding: 24rpx 28rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  margin-top: 8rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.section-count {
+  font-size: 24rpx;
+  color: var(--gray-400);
+}
+
+/* User Card */
+.user-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 12rpx rgba(99, 102, 241, 0.06);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.user-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.user-meta {
+  font-size: 22rpx;
+  color: var(--gray-400);
+  margin-bottom: 12rpx;
+}
+
+.user-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.action-link {
+  font-size: 24rpx;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.action-danger { color: var(--danger); }
+
+/* Code Card */
+.code-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 12rpx rgba(99, 102, 241, 0.06);
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.code-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--gray-800);
+  font-family: monospace;
+  letter-spacing: 2rpx;
+}
+
+.code-meta {
+  display: flex;
+  gap: 20rpx;
+  font-size: 22rpx;
+  color: var(--gray-400);
+  margin-bottom: 12rpx;
+}
+
+.code-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.divider {
+  height: 1rpx;
+  background: var(--gray-100);
+  margin: 28rpx 0;
+}
+
+.loading-wrap {
+  padding: 120rpx 0;
+}

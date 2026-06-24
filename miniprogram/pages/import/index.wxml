@@ -1,0 +1,47 @@
+<view class="import-page">
+  <!-- Download Template -->
+  <view class="card">
+    <view class="card-title">📥 导入模板</view>
+    <view class="hint mb-md">请先下载模板，按格式填写数据后导入</view>
+    <button class="btn btn-outline btn-block" bindtap="downloadTemplate">📄 下载导入模板</button>
+  </view>
+
+  <!-- File Selection -->
+  <view class="card">
+    <view class="card-title">📎 选择文件</view>
+    <view wx:if="{{!selectedFile}}" class="upload-area" bindtap="chooseFile">
+      <view class="upload-icon">📁</view>
+      <view class="upload-text">点击选择 .xlsx 文件</view>
+      <view class="upload-hint">支持从微信聊天中选择文件</view>
+    </view>
+    <view wx:else class="file-info">
+      <view class="file-icon">📄</view>
+      <view class="file-detail">
+        <view class="file-name">{{selectedFile.name}}</view>
+        <view class="file-size">{{selectedFile.size}}</view>
+      </view>
+      <view class="file-remove" bindtap="clearFile">✕</view>
+    </view>
+  </view>
+
+  <!-- Import Button -->
+  <view wx:if="{{selectedFile}}" class="card">
+    <button class="btn btn-primary btn-block" loading="{{importing}}" disabled="{{importing}}" bindtap="doImport">
+      {{importing ? '导入中...' : '🚀 开始导入'}}
+    </button>
+  </view>
+
+  <!-- Result -->
+  <view wx:if="{{result}}" class="card result-card {{result.success ? 'result-success' : 'result-error'}}">
+    <view class="result-icon">{{result.success ? '✅' : '❌'}}</view>
+    <view class="result-message">{{result.message}}</view>
+    <view wx:if="{{result.imported !== undefined}}" class="result-detail">
+      <text>成功：{{result.imported}} 条</text>
+      <text wx:if="{{result.skipped > 0}}">，跳过：{{result.skipped}} 条</text>
+    </view>
+    <view wx:if="{{result.errors && result.errors.length > 0}}" class="result-errors">
+      <view class="errors-title">错误详情：</view>
+      <view wx:for="{{result.errors}}" wx:key="*this" class="error-item">{{item}}</view>
+    </view>
+  </view>
+</view>

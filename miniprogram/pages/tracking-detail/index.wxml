@@ -1,0 +1,34 @@
+<view class="tracking-detail-page" wx:if="{{result}}">
+  <!-- Header -->
+  <view class="gradient-header">
+    <view class="header-company">{{result.company || '快递查询'}}</view>
+    <view class="header-no" selectable>{{result.tracking_no || ''}}</view>
+  </view>
+
+  <!-- Status -->
+  <view class="card status-card">
+    <view class="badge badge-{{result.state === '3' ? 'success' : result.state === '2' ? 'info' : result.state === '4' || result.state === '5' ? 'warning' : result.state === '0' ? 'danger' : 'gray'}} status-badge">
+      {{result.state_text || '未知'}}
+    </view>
+    <view wx:if="{{result.latest_context}}" class="latest-info">
+      <view class="latest-time">{{result.latest_time}}</view>
+      <view class="latest-text">{{result.latest_context}}</view>
+    </view>
+    <view wx:if="{{result.message}}" class="error-msg">{{result.message}}</view>
+  </view>
+
+  <!-- Timeline -->
+  <view wx:if="{{result.timeline && result.timeline.length > 0}}" class="card">
+    <view class="card-title">📍 物流轨迹 ({{result.timeline.length}}条)</view>
+    <tracking-timeline items="{{result.timeline}}" />
+  </view>
+</view>
+
+<view wx:if="{{error}}" class="error-card">
+  <view class="error-icon">⚠️</view>
+  <view class="error-text">{{error}}</view>
+</view>
+
+<view wx:if="{{loading}}" class="loading-wrap">
+  <empty-state loading="{{true}}" text="查询中..." />
+</view>

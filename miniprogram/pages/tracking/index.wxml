@@ -1,0 +1,55 @@
+<view class="tracking-page">
+  <!-- Query by Record ID -->
+  <view class="card">
+    <view class="card-title">📋 按记录查询</view>
+    <view class="form-group">
+      <view class="form-label">记录ID</view>
+      <view class="query-row">
+        <view class="input-wrap flex-1">
+          <input class="input-field" placeholder="输入记录ID" value="{{recordId}}" bindinput="onRecordIdInput" type="number" />
+        </view>
+        <button class="btn btn-outline btn-sm" bindtap="queryByRecord">查询</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Manual Query -->
+  <view class="card">
+    <view class="card-title">🔍 手动查询</view>
+    <view class="form-group">
+      <view class="form-label">快递公司</view>
+      <picker range="{{companyNames}}" value="{{companyIndex}}" bindchange="onCompanyChange">
+        <view class="input-wrap picker-value">{{companyNames[companyIndex] || '选择快递公司'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="form-label">快递单号</view>
+      <view class="query-row">
+        <view class="input-wrap flex-1">
+          <input class="input-field" placeholder="输入快递单号" value="{{trackingNo}}" bindinput="onTrackingNoInput" />
+        </view>
+        <button class="btn btn-primary btn-sm" loading="{{loading}}" disabled="{{loading}}" bindtap="queryManual">查询</button>
+      </view>
+    </view>
+    <view class="hint">💡 也可以在记录列表中点击「同步物流」批量更新</view>
+  </view>
+
+  <!-- Cron Settings (Admin only) -->
+  <view wx:if="{{isAdmin}}" class="card">
+    <view class="card-title">⏰ 定时查询设置</view>
+    <view class="hint mb-md">自动查询所有未签收状态的物流订单</view>
+    <view class="form-group">
+      <view class="form-label">Cron 表达式</view>
+      <view class="query-row">
+        <view class="input-wrap flex-1">
+          <input class="input-field" placeholder="0 */3 * * *" value="{{cron}}" bindinput="onCronInput" />
+        </view>
+        <button class="btn btn-primary btn-sm" bindtap="saveCron">保存</button>
+      </view>
+    </view>
+    <view class="hint">
+      格式：分 时 日 月 周
+      例：<text class="code">0 */3 * * *</text> = 每3小时，<text class="code">0 9 * * *</text> = 每天9点
+    </view>
+  </view>
+</view>

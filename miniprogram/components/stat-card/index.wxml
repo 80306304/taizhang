@@ -1,0 +1,6 @@
+<view class="stat-card {{colorType}}">
+  <view class="stat-icon">{{icon}}</view>
+  <view class="stat-label">{{label}}</view>
+  <view class="stat-value">{{value}}</view>
+  <view wx:if="{{sub}}" class="stat-sub">{{sub}}</view>
+</view>

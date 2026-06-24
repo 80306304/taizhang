@@ -1,0 +1,60 @@
+<view class="admin-page" wx:if="{{isAdmin}}">
+  <!-- Users Section -->
+  <view class="section-header">
+    <view class="section-title">👥 用户管理</view>
+    <view class="section-count">共 {{usersTotal}} 人</view>
+  </view>
+
+  <empty-state wx:if="{{!loading && users.length === 0}}" icon="👤" text="暂无用户" />
+
+  <view wx:for="{{users}}" wx:key="id" class="user-card">
+    <view class="user-info">
+      <view class="user-name">{{item.username}}</view>
+      <view class="badge {{item.role === 'admin' ? 'badge-primary' : 'badge-gray'}}">
+        {{item.role === 'admin' ? '管理员' : '普通用户'}}
+      </view>
+    </view>
+    <view class="user-meta">注册：{{item.created_at || '-'}}</view>
+    <view class="user-actions">
+      <view class="action-link" data-id="{{item.id}}" data-role="{{item.role}}" bindtap="toggleRole">
+        {{item.role === 'admin' ? '降为用户' : '升为管理员'}}
+      </view>
+      <view class="action-link action-danger" data-id="{{item.id}}" bindtap="deleteUser">删除</view>
+    </view>
+  </view>
+
+  <pagination total="{{usersTotal}}" page="{{usersPage}}" pageSize="{{20}}" bind:loadmore="onUsersLoadMore" />
+
+  <view class="divider"></view>
+
+  <!-- Invite Codes Section -->
+  <view class="section-header">
+    <view class="section-title">🔑 注册码管理</view>
+    <button class="btn btn-primary btn-sm" bindtap="generateCode">+ 生成注册码</button>
+  </view>
+
+  <empty-state wx:if="{{codes.length === 0}}" icon="🔑" text="暂无注册码" />
+
+  <view wx:for="{{codes}}" wx:key="id" class="code-card">
+    <view class="code-header">
+      <text class="code-text" bindtap="copyCode" data-code="{{item.code}}">{{item.code}}</text>
+      <view class="badge {{item.is_used ? 'badge-gray' : 'badge-success'}}">
+        {{item.is_used ? '已使用' : '未使用'}}
+      </view>
+    </view>
+    <view class="code-meta">
+      <text wx:if="{{item.creator_name}}">创建者：{{item.creator_name}}</text>
+      <text wx:if="{{item.used_by_name}}">使用者：{{item.used_by_name}}</text>
+    </view>
+    <view class="code-actions">
+      <view class="action-link" bindtap="copyCode" data-code="{{item.code}}">复制</view>
+      <view class="action-link action-danger" data-id="{{item.id}}" bindtap="deleteCode">删除</view>
+    </view>
+  </view>
+
+  <pagination total="{{codesTotal}}" page="{{codesPage}}" pageSize="{{20}}" bind:loadmore="onCodesLoadMore" />
+</view>
+
+<view wx:if="{{loading}}" class="loading-wrap">
+  <empty-state loading="{{true}}" text="加载中..." />
+</view>

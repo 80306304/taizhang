@@ -1,0 +1,95 @@
+.dashboard-page {
+  padding: 24rpx 28rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+}
+
+.greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 20rpx;
+}
+
+.admin-btn {
+  font-size: 24rpx;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+/* Time Filter */
+.time-filter {
+  margin-bottom: 24rpx;
+}
+
+.period-scroll {
+  white-space: nowrap;
+}
+
+.period-btn {
+  display: inline-block;
+  padding: 12rpx 28rpx;
+  margin-right: 12rpx;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  transition: all 0.2s;
+}
+
+.period-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+}
+
+.custom-date {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.date-picker {
+  flex: 1;
+  padding: 12rpx 20rpx;
+  background: var(--gray-50);
+  border: 2rpx solid var(--gray-200);
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  color: var(--gray-600);
+  text-align: center;
+}
+
+.date-sep {
+  color: var(--gray-400);
+  font-size: 24rpx;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+/* Section */
+.section-header {
+  margin-bottom: 16rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.loading-wrap {
+  padding: 40rpx 0;
+}
