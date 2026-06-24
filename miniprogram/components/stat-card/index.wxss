@@ -17,11 +17,17 @@
 }
 
 .stat-card.success::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.stat-card.success .stat-value { color: #10b981; }
 .stat-card.warning::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-card.warning .stat-value { color: #f59e0b; }
 .stat-card.danger::before  { background: linear-gradient(90deg, #ef4444, #f87171); }
+.stat-card.danger .stat-value  { color: #ef4444; }
 .stat-card.info::before    { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-card.info .stat-value    { color: #3b82f6; }
 .stat-card.orange::before  { background: linear-gradient(90deg, #f97316, #fb923c); }
+.stat-card.orange .stat-value  { color: #f97316; }
 .stat-card.purple::before  { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.stat-card.purple .stat-value  { color: #8b5cf6; }
 
 .stat-icon {
   font-size: 36rpx;
