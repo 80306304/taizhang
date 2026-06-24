@@ -28,7 +28,7 @@
   <!-- Stats Grid -->
   <view class="stats-grid">
     <stat-card icon="📦" label="总订单" value="{{stats.total_orders}}" />
-    <stat-card icon="💰" label="总利润（已签收）" value="{{stats.total_profit}}" colorType="orange" sub="已签收订单 总收入-总成本" />
+    <stat-card icon="💰" label="收支" value="{{stats.total_profit}}" colorType="orange" sub="所有订单 出售价-成本价" />
     <stat-card icon="✅" label="利润（已回款）" value="{{stats.total_actual_profit}}" colorType="success" sub="已回款订单 出售价-总成本" />
     <stat-card icon="🏷️" label="总成本" value="{{stats.total_cost}}" />
     <stat-card icon="💵" label="出售价" value="{{stats.total_buy_price}}" colorType="info" />
